@@ -1,38 +1,305 @@
-.App {
+/* App.css */
+
+/* GLOBAL STYLES */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #cfcfd0;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: rgb(223, 223, 223);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+h1 {
   text-align: center;
+  color: #333;
+  margin-bottom: 30px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* "ADD NEW COURSE" INPUTS */
+input[type="text"] {
+  padding: 10px;
+  width: 240px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* BUTTON STYLES */
+button {
+  padding: 10px 18px;
+  font-size: 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #47449c;
+  color: white;
+  transition: background-color 0.2s;
+  margin-right: 8px;
+}
+button:hover {
+  background-color: #312f68;
+}
+button:disabled {
+  background-color: #cfcfcf;
+  cursor: not-allowed;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* BIG START BUTTON */
+.start-button {
+  display: block;
+  width: 100%;
+  padding: 20px 0;
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+/* TIMER DISPLAY (MAIN PAGE, if you want it) */
+.timer-display {
+  font-size: 36px;
+  text-align: center;
+  margin: 20px 0;
+  color: #222;
+}
+
+/* STATS */
+.chart-container {
+  max-width: 500px;
+  margin: 20px auto;
+}
+
+/* TOPICS TAGS */
+.topics-container {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.topic-tag {
+  border: 2px solid #ccc;
+  border-radius: 16px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: inline-block;
+}
+
+/* BIG TIMER SCREEN */
+.timer-screen {
+  text-align: center;
+  margin-top: 50px;
+}
+.big-timer {
+  font-size: 64px;
+  margin: 40px 0;
+}
+.stop-button {
+  display: block;
+  width: 90%;
+  padding: 20px 0;
+  margin: 0 auto;
+  font-size: 20px;
+}
+
+.topic-tag {
+  border: 2px solid #ccc;
+  border-radius: 16px;
+  padding: 6px 12px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topic-tag input[type="color"] {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin-left: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tag-remove {
+  margin-left: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tag-color-picker {
+  background: none;
+  border: none;
+  outline: none;
+}
+
+.dark-toggle {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 10px;
+  user-select: none;
+}
+
+/* Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 20px;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #675fc0;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Prevent all text selection globally */
+* {
+  user-select: none;
+}
+
+/* But allow selecting text inside input and textarea */
+input, textarea {
+  user-select: text;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  z-index: 999;
+}
+
+.modal {
+  background-color: white;
+  color: #222;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.modal button {
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+}
+
+.modal .confirm {
+  background-color: #dc3545;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.modal .cancel {
+  background-color: #6c757d;
+  color: white;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+body.dark-mode .modal {
+  background-color: #2c2c2c;
+  color: white;
+}
+
+
+
+/* ============= DARK MODE ============= */
+body.dark-mode {
+  background-color: #121212;
+  color: #f2f2f2;
+}
+
+body.dark-mode .app-container {
+  background-color: #1e1e1e;
+  color: #f2f2f2;
+  box-shadow: 0 6px 18px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode h1 {
+  color: #f2f2f2;
+}
+
+body.dark-mode input[type="text"] {
+  background-color: #2c2c2c;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+body.dark-mode button {
+  background-color: #675fc0;
+}
+
+body.dark-mode button:hover {
+  background-color: #4f48a4;
+}
+
+body.dark-mode .timer-display {
+  color: #f2f2f2;
+}
+
+body.dark-mode .topic-tag {
+  border-color: #555;
+}
+
+body.dark-mode .topic-tag:hover {
+  background-color: rgba(103,95,192,0.2);
 }
