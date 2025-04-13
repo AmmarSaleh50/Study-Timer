@@ -16,7 +16,6 @@ function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer }) {
 }
 
 // Helper: derive a week key (e.g. "2023-W15") from a given ISO date string.
-// This is used to group study sessions.
 function getWeekKey(isoString) {
   const date = new Date(isoString);
   const day = (date.getDay() + 6) % 7; // Adjust so Monday = 0
@@ -53,16 +52,13 @@ function formatDuration(seconds) {
   return `${h > 0 ? h + 'h ' : ''}${m}m`;
 }
 
-// The new Weekly Stats Card component.
 function WeeklyStatsCard({ sessionsData, topics }) {
-  // sessionsData is an object: { subject: durationSeconds, ... } for the current week.
   const subjects = Object.keys(sessionsData || {});
   const totalDuration = subjects.reduce(
     (sum, subj) => sum + sessionsData[subj],
     0
   );
 
-  // Build doughnut chart data.
   const chartData = {
     labels: subjects,
     datasets: [
@@ -76,7 +72,6 @@ function WeeklyStatsCard({ sessionsData, topics }) {
     ]
   };
 
-  // Get the current week range.
   const { monday, sunday } = getWeekRange(new Date());
   const weekRangeStr = `${formatDate(monday)} – ${formatDate(sunday)}`;
 
@@ -118,7 +113,9 @@ function WeeklyStatsCard({ sessionsData, topics }) {
 }
 
 function App() {
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
+  const [darkMode, setDarkMode] = useState(() =>
+    localStorage.getItem('darkMode') === 'true'
+  );
   useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
     localStorage.setItem('darkMode', darkMode);
@@ -141,9 +138,26 @@ function App() {
   const [showTimerScreen, setShowTimerScreen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+  // Load sessions and resume timer if one was active.
   useEffect(() => {
-    const stored = localStorage.getItem('studySessions');
-    if (stored) setSessions(JSON.parse(stored));
+    const storedSessions = localStorage.getItem('studySessions');
+    if (storedSessions) setSessions(JSON.parse(storedSessions));
+
+    // **New:** Check if there's an active timer stored
+    const activeTimer = localStorage.getItem('activeTimer');
+    if (activeTimer) {
+      const { startTime: savedStartTime, subject: savedSubject } = JSON.parse(activeTimer);
+      setSubject(savedSubject);
+      const parsedStartTime = new Date(savedStartTime);
+      setStartTime(parsedStartTime);
+      setTimerRunning(true);
+      setShowTimerScreen(true);
+      // Calculate already elapsed seconds
+      const initialElapsed = Math.floor((new Date() - parsedStartTime) / 1000);
+      setElapsedSeconds(initialElapsed);
+      const id = setInterval(() => setElapsedSeconds(prev => prev + 1), 1000);
+      setIntervalId(id);
+    }
   }, []);
 
   useEffect(() => {
@@ -168,10 +182,14 @@ function App() {
       setTimeout(() => setErrorMessage(''), 3000);
       return;
     }
-    setStartTime(new Date());
+    const now = new Date();
+    setStartTime(now);
     setTimerRunning(true);
     setShowTimerScreen(true);
-    const id = setInterval(() => setElapsedSeconds((prev) => prev + 1), 1000);
+    // **New:** Save the active timer state to localStorage
+    localStorage.setItem('activeTimer', JSON.stringify({ startTime: now.toISOString(), subject }));
+
+    const id = setInterval(() => setElapsedSeconds(prev => prev + 1), 1000);
     setIntervalId(id);
   };
 
@@ -188,9 +206,11 @@ function App() {
       subject,
       durationSeconds: duration
     };
-    setSessions((prev) => [...prev, newSession]);
+    setSessions(prev => [...prev, newSession]);
     setElapsedSeconds(0);
     setSubject('');
+    // **New:** Remove active timer from localStorage
+    localStorage.removeItem('activeTimer');
   };
 
   const updateTopicColor = (topicName, newColor) => {
@@ -262,7 +282,7 @@ function App() {
           <input
             type="checkbox"
             checked={darkMode}
-            onChange={() => setDarkMode((prev) => !prev)}
+            onChange={() => setDarkMode(prev => !prev)}
           />
           <span className="slider round"></span>
         </label>
@@ -292,7 +312,7 @@ function App() {
         <div style={{ marginBottom: '20px' }}>
           <label>Study Course:</label>
           <div className="topics-container">
-            {topics.map((topic) => {
+            {topics.map(topic => {
               const isActive = subject === topic.name;
               return (
                 <div
@@ -304,7 +324,7 @@ function App() {
                     color: isActive ? '#fff' : 'inherit'
                   }}
                   onClick={() =>
-                    setSubject((prev) => (prev === topic.name ? '' : topic.name))
+                    setSubject(prev => (prev === topic.name ? '' : topic.name))
                   }
                 >
                   {topic.name}
@@ -345,17 +365,17 @@ function App() {
         )}
 
         <hr style={{ margin: '30px 0' }} />
-       
-      <div style={{ marginTop: '20px' }}>
-        <WeeklyStatsCard sessionsData={currentWeekSessions} topics={topics} />
+
+        <div style={{ marginTop: '20px' }}>
+          <WeeklyStatsCard sessionsData={currentWeekSessions} topics={topics} />
         </div>
       </div>
 
       <div className="reset-button-container">
-      <button className="reset-button" onClick={confirmReset}>
-        Reset Data
-      </button>
-    </div>
+        <button className="reset-button" onClick={confirmReset}>
+          Reset Data
+        </button>
+      </div>
 
       {showResetConfirm && (
         <div className="modal-overlay">
