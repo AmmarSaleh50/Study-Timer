@@ -268,9 +268,6 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
    - Main component handling timer, sessions, topics, user actions and rendering.  
 ============================================================================ */
 function Dashboard() {
-  const [darkMode, setDarkMode] = useState(() =>
-    localStorage.getItem('darkMode') === 'true'
-  );
   const navigate = useNavigate();
 
   // Timer and session related states.
@@ -291,11 +288,13 @@ function Dashboard() {
   const [lastPausedAt, setLastPausedAt] = useState(null);
   const [startTime, setStartTime] = useState(null);
 
-  // Update dark mode on body.
+  // Card background color state (persist in localStorage)
+  const [cardBg, setCardBg] = useState(() => {
+    return localStorage.getItem('cardBg') || '#232234';
+  });
   useEffect(() => {
-    document.body.classList.toggle('dark-mode', darkMode);
-    localStorage.setItem('darkMode', darkMode);
-  }, [darkMode]);
+    localStorage.setItem('cardBg', cardBg);
+  }, [cardBg]);
 
   // Resume active timer if exists.
   useEffect(() => {
@@ -674,12 +673,79 @@ function Dashboard() {
     setSubject(topicName);
   };
 
+  // --- Drawer State ---
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // --- Touch gesture for opening drawer on mobile ---
+  const touchStartX = useRef(null);
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchMove = (e) => {
+    if (touchStartX.current !== null) {
+      const deltaX = e.touches[0].clientX - touchStartX.current;
+      if (deltaX > 60 && touchStartX.current < 40) {
+        setDrawerOpen(true);
+        touchStartX.current = null;
+      }
+    }
+  };
+  const handleTouchEnd = () => {
+    touchStartX.current = null;
+  };
+
+  // Add touch listeners to the main container
+  useEffect(() => {
+    const container = document.getElementById('main-app-container');
+    if (!container) return;
+    container.addEventListener('touchstart', handleTouchStart);
+    container.addEventListener('touchmove', handleTouchMove);
+    container.addEventListener('touchend', handleTouchEnd);
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   /* --------------------- Render Logic ---------------------- */
 
   // If timer is active, show the TimerScreen.
   if (showTimerScreen) {
     return (
-      <div className="app-container">
+      <div id="main-app-container" className="app-container" style={{ backgroundColor: cardBg }}>
+        {/* Drawer overlay and drawer */}
+        <div className={`drawer-overlay${drawerOpen ? ' open' : ''}`} onClick={() => setDrawerOpen(false)} />
+        <nav className={`drawer${drawerOpen ? ' open' : ''}`}
+          style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div style={{ height: '38px' }} />
+          <div className="drawer-color-picker" style={{ marginBottom: 24 }}>
+            <label>Card Color:</label>
+            <input
+              type="color"
+              value={cardBg}
+              onChange={e => setCardBg(e.target.value)}
+            />
+          </div>
+          <div className="drawer-actions">
+            {currentUser ? (
+              <button onClick={handleSignOut}>Sign Out</button>
+            ) : (
+              <>
+                <button onClick={() => navigate('/login')}>Sign In</button>
+                <button onClick={() => navigate('/register')}>Register</button>
+              </>
+            )}
+          </div>
+        </nav>
+        {/* Drawer open button (three centered slashes) */}
+        <button className="drawer-open-btn" onClick={() => setDrawerOpen(true)}>
+          <span className="drawer-slashes">
+            <span className="drawer-slash"></span>
+            <span className="drawer-slash"></span>
+            <span className="drawer-slash"></span>
+          </span>
+        </button>
         <TimerScreen
           subject={subject}
           elapsedSeconds={elapsedSeconds}
@@ -712,33 +778,38 @@ function Dashboard() {
   }
 
   return (
-    <div className="app-container">
-      <div className="header-controls">
-        <div className="header-buttons">
+    <div id="main-app-container" className="app-container" style={{ backgroundColor: cardBg }}>
+      {/* Drawer open button (three centered slashes only) */}
+      <button className="drawer-open-btn" onClick={() => setDrawerOpen(true)}>
+        <span className="drawer-slashes">
+          <span className="drawer-slash"></span>
+          <span className="drawer-slash"></span>
+          <span className="drawer-slash"></span>
+        </span>
+      </button>
+      <div className={`drawer-overlay${drawerOpen ? ' open' : ''}`} onClick={() => setDrawerOpen(false)} />
+      <nav className={`drawer${drawerOpen ? ' open' : ''}`}
+        style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ height: '38px' }} />
+        <div className="drawer-color-picker" style={{ marginBottom: 24 }}>
+          <label>Card Color:</label>
+          <input
+            type="color"
+            value={cardBg}
+            onChange={e => setCardBg(e.target.value)}
+          />
+        </div>
+        <div className="drawer-actions">
           {currentUser ? (
-            <button onClick={handleSignOut} style={{ padding: "6px 12px", cursor: "pointer" }}>
-              Sign Out
-            </button>
+            <button onClick={handleSignOut}>Sign Out</button>
           ) : (
             <>
-              <button onClick={() => navigate("/login")}>Login</button>
-              <button onClick={() => navigate("/register")}>Register</button>
+              <button onClick={() => navigate('/login')}>Sign In</button>
+              <button onClick={() => navigate('/register')}>Register</button>
             </>
           )}
         </div>
-        <div className="dark-toggle">
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={darkMode}
-              onChange={() => setDarkMode((prev) => !prev)}
-            />
-            <span className="slider round"></span>
-          </label>
-          <span>Dark Mode</span>
-        </div>
-      </div>
-
+      </nav>
       <div style={{ fontFamily: 'Arial' }}>
         <h1>Study Timer</h1>
 
