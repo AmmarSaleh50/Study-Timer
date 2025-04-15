@@ -49,19 +49,29 @@ const isLocalhost = Boolean(
           installingWorker.onstatechange = () => {
             if (installingWorker.state === 'installed') {
               if (navigator.serviceWorker.controller) {
-                // New content is available; show notification or auto-refresh
-                console.log('New content is available; please refresh.');
-  
+                // New content is available; force update!
+                console.log('New content is available; updating...');
+                if (registration.waiting) {
+                  registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+                // Optionally call onUpdate
                 if (config && config.onUpdate) config.onUpdate(registration);
               } else {
                 // Content is cached for offline use.
                 console.log('Content is cached for offline use.');
-  
                 if (config && config.onSuccess) config.onSuccess(registration);
               }
             }
           };
         };
+
+        // Listen for the controlling service worker changing and reload the page
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
       })
       .catch(error => {
         console.error('Error during service worker registration:', error);
