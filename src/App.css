@@ -130,8 +130,8 @@ button:disabled {
 .timer-link button {
   background: none;
   border: none;
-  color: #47449c;
-  text-decoration: underline;
+  color: white;
+  /* text-decoration: underline; */
   cursor: pointer;
   font-size: 1.1em;
 }
@@ -140,6 +140,9 @@ button:disabled {
   display: flex;
   gap: 15px;
   justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  width: fit-content;
 }
 
 .control-button {
@@ -174,6 +177,27 @@ button:disabled {
 .control-button.stop:hover {
   background-color: #94242f;
   filter: brightness(90%);
+}
+
+.timer-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.big-timer {
+  font-size: 64px;
+  margin: 40px 0;
+}
+
+.stop-button {
+  display: block;
+  width: 90%;
+  padding: 20px 0;
+  margin: 0 auto;
+  font-size: 20px;
 }
 
 /* -------------------- Topics Tags -------------------- */
@@ -214,25 +238,6 @@ button:disabled {
   background: none;
   border: none;
   outline: none;
-}
-
-/* -------------------- Timer Screen -------------------- */
-.timer-screen {
-  text-align: center;
-  margin-top: 50px;
-}
-
-.big-timer {
-  font-size: 64px;
-  margin: 40px 0;
-}
-
-.stop-button {
-  display: block;
-  width: 90%;
-  padding: 20px 0;
-  margin: 0 auto;
-  font-size: 20px;
 }
 
 /* -------------------- Dark Mode Toggle -------------------- */

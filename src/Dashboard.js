@@ -606,6 +606,24 @@ function Dashboard() {
           onPause={handlePause}
           onResume={handleResume}
         />
+        {/* Back to Main Page button below card */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 30 }}>
+          <button
+            className="back-to-main-btn"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#aaa',
+              fontSize: '14px',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              marginTop: 10
+            }}
+            onClick={() => setShowTimerScreen(false)}
+          >
+        ←Back to Main Page
+          </button>
+        </div>
       </div>
     );
   }
@@ -710,8 +728,8 @@ function Dashboard() {
         {/* Timer Control */}
         {timerRunning && !showTimerScreen && (
           <div className="timer-link">
-            <button onClick={() => setShowTimerScreen(true)}>
-              Check your timer!
+            <button className="start-button" onClick={() => setShowTimerScreen(true)}>
+              Back to Timer
             </button>
           </div>
         )}
@@ -719,11 +737,7 @@ function Dashboard() {
           <button className="start-button" onClick={startTimer}>
             Start
           </button>
-        ) : (
-          <button className="start-button" disabled>
-            Check your timer!
-          </button>
-        )}
+        ) : null}
 
         <hr style={{ margin: '30px 0' }} />
 

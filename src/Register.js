@@ -75,7 +75,7 @@ export default function Register() {
 
       <p style={{ marginTop: "10px" }}>
       <Link to="/" style={{ color: "#aaa", fontSize: "14px" }}>
-        ← Back to Timer
+        ← Back to Main Page
       </Link>
       </p>
     </div>
