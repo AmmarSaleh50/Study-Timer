@@ -16,15 +16,12 @@ html {
 .app-container {
   max-width: 700px;
   margin: 40px auto;
-  padding: 30px;
+  padding: 20px;
   background-color: rgb(223, 223, 223);
   border-radius: 16px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
-  padding: 20px;
-  margin: 20px auto;
   width: 90%;
-  max-width: 700px;
   overflow-x: hidden;
 }
 
@@ -50,7 +47,6 @@ input[type="color"] {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  padding: 0;
   cursor: pointer;
   background: none;
   overflow: hidden;
@@ -104,7 +100,6 @@ button:disabled {
   border-radius: 10px;
   background-color: #ba2f3d88;
   color: white;
-  border: none;
   cursor: pointer;
   transition: background-color 0.3s ease;
   align-items: center;
@@ -126,6 +121,59 @@ button:disabled {
   text-align: center;
   margin: 20px 0;
   color: #222;
+}
+.timer-link {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.timer-link button {
+  background: none;
+  border: none;
+  color: #47449c;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1.1em;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.control-button {
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.control-button.pause {
+  background-color: #d6b74c; /* softer amber/gold */
+}
+
+.control-button.pause:hover {
+  background-color: #bfa441;
+  filter: brightness(90%);
+}
+
+.control-button.resume {
+  background-color: #5d996c; /* muted green */
+}
+
+.control-button.resume:hover {
+  background-color: #4d805a;
+  filter: brightness(90%);
+}
+
+.control-button.stop {
+  background-color: #ba2f3d88;
+}
+
+.control-button.stop:hover {
+  background-color: #94242f;
+  filter: brightness(90%);
 }
 
 /* -------------------- Topics Tags -------------------- */
@@ -151,11 +199,9 @@ button:disabled {
 .topic-tag input[type="color"] {
   width: 20px;
   height: 20px;
-  padding: 0;
   margin-left: 4px;
   border: none;
   background: transparent;
-  cursor: pointer;
 }
 
 .tag-remove {
@@ -194,7 +240,6 @@ button:disabled {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  user-select: none;
 }
 
 .switch {
@@ -284,8 +329,8 @@ input:checked + .slider:before {
   padding: 10px 20px;
   font-weight: bold;
   border-radius: 8px;
-  cursor: pointer;
   border: none;
+  cursor: pointer;
 }
 
 .modal .confirm {
@@ -363,40 +408,29 @@ body.dark-mode .reset-button:hover {
 }
 
 .stats-card-header {
-  /* remove justify-content: space-between */
   display: flex;
-  justify-content: center; 
+  justify-content: center;
   align-items: center;
   margin-bottom: 16px;
-  /* optional: if you want them stacked above some other header text, 
-     you can do flex-direction: column */
-  /* flex-direction: column; */
 }
 
-/* Container for the tab buttons; we use flex so each button is equally sized */
 .view-tabs {
   position: relative;
   display: flex;
-  
-  /* Center the entire tab bar horizontally in its parent */
   width: fit-content;
-  margin: 0 auto; /* This centers it horizontally in the card */
+  margin: 0 auto;
   background-color: #2c2c2c;
   border-radius: 10px;
   overflow: hidden;
-  justify-content: center; /* optional, but safe */
-  width: fit-content; /* <— this lets it shrink-wrap around the buttons */
-  margin: 0 auto; /* <— this is what centers it horizontally */
+  justify-content: center;
 }
 
-/* Each button gets equal width. 3 tabs = 33.33%. If you have more or fewer, adjust. */
 .view-tabs .tab-button {
-  position: relative; /* So we can layer the indicator behind text */
   flex: none;
   width: 100px;
   padding: 10px 0;
   text-align: center;
-  z-index: 2; /* Above the indicator */
+  z-index: 2;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -404,12 +438,10 @@ body.dark-mode .reset-button:hover {
   transition: 0.2s ease-in-out;
 }
 
-/* Optional hover for each button */
 .view-tabs .tab-button:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Active button styling can be kept minimal if you prefer the indicator to do most of the work */
 .view-tabs .tab-button.active {
   color: #fff;
 }
@@ -419,10 +451,10 @@ body.dark-mode .reset-button:hover {
   top: 0;
   left: 0;
   width: calc(100% / NUMBER_OF_TABS);
-  height: 100%;  /* so it covers the entire tab’s vertical space */
+  height: 100%;
   background-color: #5c5be5;
   transition: transform 0.3s ease;
-  z-index: 1; /* behind the buttons */
+  z-index: 1;
 }
 
 .stats-chart {
@@ -443,36 +475,6 @@ body.dark-mode .reset-button:hover {
   list-style: none;
   padding: 0;
   margin: 0;
-}
-
-.stats-topics .topic-line {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #ccc;
-  margin: 4px 0;
-  padding: 4px 10px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 6px;
-}
-
-.stats-topics .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 8px;
-}
-
-.topic-name {
-  flex: 1;
-  margin-left: 8px;
-  font-weight: 500;
-}
-
-.topic-time {
-  font-weight: 400;
-  color: #aaa;
 }
 
 .stats-topics .topic-line {
@@ -512,10 +514,7 @@ body.dark-mode .reset-button:hover {
   font-size: 0.95em;
 }
 
-
-
 /* -------------------- Mobile Responsiveness -------------------- */
-/* Responsive wrapper for Add Course */
 .add-course-wrapper {
   display: flex;
   flex-wrap: wrap;
@@ -527,10 +526,9 @@ body.dark-mode .reset-button:hover {
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* ✅ this aligns the toggle and buttons vertically */
-  flex-wrap: wrap; /* optional: for better responsiveness */
+  align-items: center;
+  flex-wrap: wrap;
 }
-
 
 .header-controls {
   display: flex;
@@ -545,7 +543,6 @@ body.dark-mode .reset-button:hover {
   gap: 0px;
 }
 
-
 .dark-toggle {
   display: flex;
   align-items: center;
@@ -555,7 +552,7 @@ body.dark-mode .reset-button:hover {
 @media (max-width: 600px) {
   .header {
     flex-direction: column;
-    align-items: flex-start; /* stack on top, left-aligned */
+    align-items: flex-start;
     gap: 10px;
   }
 
@@ -563,5 +560,3 @@ body.dark-mode .reset-button:hover {
     flex-direction: row;
   }
 }
-
-

@@ -1,6 +1,5 @@
-// src/Dashboard.js
-import React, { useState, useEffect } from 'react';
-import { Doughnut, Bar } from 'react-chartjs-2'; // Import Bar component here
+import React, { useState, useEffect, useRef } from 'react';
+import { Doughnut, Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import './App.css';
 import { signOut } from "firebase/auth";
@@ -19,24 +18,11 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 
-/* -------------------------------------------------------------------------
-   TimerScreen Component
--------------------------------------------------------------------------- */
-function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer }) {
-  return (
-    <div className="timer-screen">
-      <h2>Currently Studying: {subject}</h2>
-      <div className="big-timer">{formatTime(elapsedSeconds)}</div>
-      <button className="stop-button" onClick={stopTimer}>
-        Stop
-      </button>
-    </div>
-  );
-}
+/* ============================================================================  
+   Helper Functions  
+============================================================================ */
 
-/* -------------------------------------------------------------------------
-   Helper Functions
--------------------------------------------------------------------------- */
+// Returns a unique key for a given ISO date string based on the week of the year.
 function getWeekKey(isoString) {
   const date = new Date(isoString);
   const day = (date.getDay() + 6) % 7;
@@ -49,6 +35,7 @@ function getWeekKey(isoString) {
   return `${year}-W${weekNumber}`;
 }
 
+// Returns the Monday and Sunday of the week for a given date.
 function getWeekRange(date) {
   const d = new Date(date);
   const day = d.getDay();
@@ -60,7 +47,7 @@ function getWeekRange(date) {
   return { monday, sunday };
 }
 
-
+// Formats a duration (in seconds) smartly as seconds, minutes, or hours + minutes.
 function formatSmartDuration(seconds) {
   if (seconds < 60) return `${seconds}s`;
   const hours = Math.floor(seconds / 3600);
@@ -70,23 +57,46 @@ function formatSmartDuration(seconds) {
   return `${minutes}m`;
 }
 
-/* -------------------------------------------------------------------------
-   WeeklyStatsCard Component with Tab Navigation & Daily Bar Chart
--------------------------------------------------------------------------- */
+/* ============================================================================  
+   TimerScreen Component  
+============================================================================ */
+function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume }) {
+  return (
+    <div className="timer-screen">
+      <h2>Currently Studying: {subject}</h2>
+      <div className="big-timer">{formatTime(elapsedSeconds)}</div>
+      <div className="timer-controls">
+        <button 
+          className={`control-button ${isPaused ? 'resume' : 'pause'}`}
+          onClick={isPaused ? onResume : onPause}
+        >
+          {isPaused ? 'Resume' : 'Pause'}
+        </button>
+        <button className="control-button stop" onClick={stopTimer}>
+          Stop
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================================  
+   WeeklyStatsCard Component  
+   - Renders tab navigation, Doughnut and Stacked Bar charts based on the view mode.  
+============================================================================ */
 function WeeklyStatsCard({ sessionsData, topics, sessions }) {
-  // viewMode: 'week', 'today', or 'daily'
+  // Tab view state: 'week', 'today', or 'daily'
   const [viewMode, setViewMode] = useState("week");
   const tabs = ["today", "week", "daily"];
   const tabIndex = tabs.indexOf(viewMode);
 
-
-  // Prepare data based on view mode.
+  // Prepare display data for different view modes
   let displayData = {};
   if (viewMode === "week") {
-    // For the week view, use the provided sessionsData (aggregated for the week)
+    // Week view uses aggregated data passed as sessionsData.
     displayData = sessionsData;
   } else if (viewMode === "today") {
-    // Aggregate sessions by subject for today
+    // Aggregate today's sessions by subject.
     const todayStr = new Date().toISOString().split("T")[0];
     sessions.forEach((s) => {
       if (s.startTime.split("T")[0] === todayStr) {
@@ -94,16 +104,12 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
       }
     });
   }
-  // For daily view, we'll compute data for a stacked bar chart below.
-
-  // Compute total duration for chart summary (only for 'week' and 'today' views)
+  
+  // Calculate total duration and subject list (for week and today views)
   const subjects = Object.keys(displayData);
-  const totalDuration = subjects.reduce(
-    (sum, subj) => sum + displayData[subj],
-    0
-  );
+  const totalDuration = subjects.reduce((sum, subj) => sum + displayData[subj], 0);
 
-  // Prepare chart data if in 'week' or 'today' view (using the Doughnut chart)
+  // Doughnut chart data (for 'week' and 'today' views)
   const doughnutChartData = {
     labels: subjects,
     datasets: [
@@ -120,25 +126,20 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
 
   const doughnutChartOptions = {
     plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        enabled: false
-      }
+      legend: { display: false },
+      tooltip: { enabled: false }
     },
     maintainAspectRatio: false,
     responsive: true,
     cutout: '60%'
   };
 
-  // Get week range for header
-  const { monday, sunday } = getWeekRange(new Date());
-  // For Daily view: Create a stacked bar chart that shows per-day, per-subject durations.
+  // Daily view: Prepare data for a stacked bar chart
   let dailyChartData = null;
   let dailyChartOptions = null;
   if (viewMode === "daily") {
-    // Build an array of ISO strings and labels for each day in the current week.
+    // Create arrays of ISO day keys and labels for the current week.
+    const { monday, sunday } = getWeekRange(new Date());
     const dayKeys = [];
     const dayLabels = [];
     const currentDate = new Date(monday);
@@ -155,13 +156,11 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
       currentDate.setDate(currentDate.getDate() + 1);
     }
     
-    // Prepare datasets: For each topic, get an array of duration totals per day.
+    // Build datasets: one per topic with durations per day.
     const datasets = topics.map(topic => {
-      // For each day, sum durations where session.subject matches the topic.
       const data = dayKeys.map(dayKey => {
         let sum = 0;
         sessions.forEach(s => {
-          // Check if session is on this day and matches the topic
           if (s.subject === topic.name && s.startTime.startsWith(dayKey)) {
             sum += s.durationSeconds;
           }
@@ -175,16 +174,11 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
       };
     });
     
-    dailyChartData = {
-      labels: dayLabels,
-      datasets
-    };
+    dailyChartData = { labels: dayLabels, datasets };
     
     dailyChartOptions = {
       plugins: {
-        legend: {
-          display: false // ✅ Hides the color squares + labels on top
-        },
+        legend: { display: false },
         tooltip: {
           callbacks: {
             label: function(context) {
@@ -195,22 +189,12 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
           }
         }
       },
-      
-      legend: {
-        display: false 
-      },
       responsive: true,
       scales: {
-        x: {
-          stacked: true
-        },
-        y: {
+        x: { stacked: true },
+        y: { 
           stacked: true,
-          ticks: {
-            callback: function(value) {
-              return formatSmartDuration(value);
-            }
-          }
+          ticks: { callback: (value) => formatSmartDuration(value) }
         }
       }
     };
@@ -219,34 +203,35 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
   return (
     <div className="stats-card">
       <div className="stats-card-header">
-          {/* Tab navigation */}
-          <div className='tabs-wrapper'>
-            <div className="view-tabs">
-              {tabs.map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`tab-button ${viewMode === mode ? 'active' : ''}`}
-                >
-                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                </button>
-              ))}
-              <div
-                className="tab-indicator"
-                style={{ transform: `translateX(${tabIndex * 100}%)` }}
-              />
-            </div>
-          </div> 
+        {/* Tab Navigation */}
+        <div className='tabs-wrapper'>
+          <div className="view-tabs">
+            {tabs.map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`tab-button ${viewMode === mode ? 'active' : ''}`}
+              >
+                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+              </button>
+            ))}
+            <div
+              className="tab-indicator"
+              style={{ transform: `translateX(${tabIndex * 100}%)` }}
+            />
+          </div>
+        </div> 
       </div>
+      
       {viewMode === "daily" ? (
-        // Daily view: Render a stacked Bar chart.
+        // Render Daily Stacked Bar Chart
         <div className="stats-card-content" style={{ height: "300px" }}>
           {dailyChartData && (
             <Bar data={dailyChartData} options={dailyChartOptions} />
           )}
         </div>
       ) : (
-        // For week and today: display chart and breakdown list
+        // Render Doughnut chart and list summary for 'week' and 'today' views.
         <div className="stats-card-content">
           {subjects.length > 0 ? (
             <>
@@ -277,29 +262,35 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
   );
 }
 
-/* -------------------------------------------------------------------------
-   Dashboard Component
--------------------------------------------------------------------------- */
+/* ============================================================================  
+   Dashboard Component  
+   - Main component handling timer, sessions, topics, user actions and rendering.  
+============================================================================ */
 function Dashboard() {
   const [darkMode, setDarkMode] = useState(() =>
     localStorage.getItem('darkMode') === 'true'
   );
   const navigate = useNavigate();
 
-  // Timer and session related states
+  // Timer and session related states.
   const [topics, setTopics] = useState([]);
   const [newTopic, setNewTopic] = useState('');
   const [newTopicColor, setNewTopicColor] = useState('#47449c');
   const [subject, setSubject] = useState('');
   const [timerRunning, setTimerRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [intervalId, setIntervalId] = useState(null);
+  // Remove intervalId from state and use ref instead.
+  const intervalRef = useRef(null);
   const [sessions, setSessions] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [showTimerScreen, setShowTimerScreen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [totalPausedDuration, setTotalPausedDuration] = useState(0);
+  const [lastPausedAt, setLastPausedAt] = useState(null);
+  const [startTime, setStartTime] = useState(null);
 
-  // Set dark mode on body.
+  // Update dark mode on body.
   useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
     localStorage.setItem('darkMode', darkMode);
@@ -314,17 +305,31 @@ function Dashboard() {
       const userDocRef = doc(db, "users", userId);
       const userSnap = await getDoc(userDocRef);
       const timerData = userSnap.data()?.activeTimer;
-      if (!timerData) return;
-      const start = new Date(timerData.startTime);
-      setSubject(timerData.subject);
-      setTimerRunning(true);
-      setShowTimerScreen(true);
-      const id = setInterval(() => {
-        const now = new Date();
-        const elapsed = Math.floor((now.getTime() - start.getTime()) / 1000);
+      if (timerData) {
+        const start = new Date(timerData.startTime);
+        setStartTime(start);
+        setTotalPausedDuration(timerData.totalPausedDuration || 0);
+        setIsPaused(timerData.isPaused || false);
+        setLastPausedAt(timerData.lastPausedAt ? new Date(timerData.lastPausedAt) : null);
+        
+        // Calculate elapsed time
+        let elapsed;
+        if (timerData.isPaused) {
+          elapsed = Math.floor((new Date(timerData.lastPausedAt) - start) / 1000 - (timerData.totalPausedDuration || 0));
+        } else {
+          elapsed = Math.floor((Date.now() - start) / 1000 - (timerData.totalPausedDuration || 0));
+        }
         setElapsedSeconds(elapsed);
-      }, 1000);
-      setIntervalId(id);
+        
+        // Start interval if not paused
+        if (!timerData.isPaused) {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          const id = setInterval(() => {
+            setElapsedSeconds(Math.floor((Date.now() - start) / 1000 - (timerData.totalPausedDuration || 0)));
+          }, 1000);
+          intervalRef.current = id;
+        }
+      }
     };
     fetchTimer();
   }, []);
@@ -359,13 +364,16 @@ function Dashboard() {
     fetchSessions();
   }, []);
 
-  // ---------- User Actions ----------
+  /* --------------------- User Action Handlers ---------------------- */
+
+  // Sign Out user.
   const handleSignOut = async () => {
     await signOut(auth);
     localStorage.removeItem("user");
     navigate("/login");
   };
 
+  // Add a new topic.
   const addTopic = async () => {
     const name = newTopic.trim();
     if (!name) return;
@@ -382,6 +390,7 @@ function Dashboard() {
     setNewTopicColor("#47449c");
   };
 
+  // Start the timer.
   const startTimer = async () => {
     if (!subject || !topics.some((t) => t.name === subject)) {
       setErrorMessage("Please select a study topic before starting.");
@@ -397,22 +406,32 @@ function Dashboard() {
       {
         activeTimer: {
           subject,
-          startTime: new Date().toISOString()
+          startTime: new Date().toISOString(),
+          totalPausedDuration: 0,
+          isPaused: false,
+          lastPausedAt: null
         }
       },
       { merge: true }
     );
+    setIsPaused(false);
+    setLastPausedAt(null);
+    setTotalPausedDuration(0);
     setTimerRunning(true);
     setShowTimerScreen(true);
     const actualStart = new Date();
+    setStartTime(actualStart);
+    // Clear any existing intervals
+    if (intervalRef.current) clearInterval(intervalRef.current);
     const id = setInterval(() => {
       const now = new Date();
       const elapsed = Math.floor((now.getTime() - actualStart.getTime()) / 1000);
       setElapsedSeconds(elapsed);
     }, 1000);
-    setIntervalId(id);
+    intervalRef.current = id;
   };
 
+  // Stop the timer and record the session.
   const stopTimer = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
@@ -444,13 +463,62 @@ function Dashboard() {
     await updateDoc(userDocRef, {
       activeTimer: deleteField()
     });
-    if (intervalId) clearInterval(intervalId);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     setTimerRunning(false);
     setShowTimerScreen(false);
     setElapsedSeconds(0);
     setSubject("");
   };
 
+  // Add pause/resume handlers
+  const handlePause = async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const userId = user.uid;
+    const now = new Date();
+    
+    await updateDoc(doc(db, "users", userId), {
+      'activeTimer.isPaused': true,
+      'activeTimer.lastPausedAt': now.toISOString(),
+    });
+    
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsPaused(true);
+    setLastPausedAt(now);
+  };
+
+  const handleResume = async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const userId = user.uid;
+    const now = new Date();
+    if (!startTime || !lastPausedAt) return;
+    const pausedDuration = Math.floor((now - lastPausedAt) / 1000);
+    const newTotal = totalPausedDuration + pausedDuration;
+  
+    await updateDoc(doc(db, "users", userId), {
+      'activeTimer.isPaused': false,
+      'activeTimer.totalPausedDuration': newTotal,
+      'activeTimer.lastPausedAt': null,
+    });
+  
+    setTotalPausedDuration(newTotal);
+    setIsPaused(false);
+    
+    // Clear any existing interval before starting a new one
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    const id = setInterval(() => {
+      const currentElapsed = Math.floor((Date.now() - startTime.getTime()) / 1000 - newTotal);
+      setElapsedSeconds(currentElapsed > 0 ? currentElapsed : 0);
+    }, 1000);
+    intervalRef.current = id;
+  };
+
+  // Update the color for a specific topic.
   const updateTopicColor = async (topicName, newColor) => {
     const updated = topics.map((t) =>
       t.name === topicName ? { ...t, color: newColor } : t
@@ -462,6 +530,7 @@ function Dashboard() {
     await updateDoc(doc(db, "users", userId), { topics: updated });
   };
 
+  // Remove a topic.
   const removeTopic = async (topicName) => {
     const updated = topics.filter((t) => t.name !== topicName);
     setTopics(updated);
@@ -472,6 +541,7 @@ function Dashboard() {
     if (subject === topicName) setSubject("");
   };
 
+  // Confirm and handle reset of all study data.
   const confirmReset = () => setShowResetConfirm(true);
 
   const handleResetConfirmed = async () => {
@@ -495,16 +565,15 @@ function Dashboard() {
 
   const handleResetCancelled = () => setShowResetConfirm(false);
 
+  // Format seconds to HH:MM:SS
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins
-      .toString()
-      .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Group sessions by week as before.
+  // Group sessions by week.
   const groupSessionsByWeek = () => {
     const groups = {};
     sessions.forEach((session) => {
@@ -520,11 +589,11 @@ function Dashboard() {
   const groupedSessions = groupSessionsByWeek();
   const currentWeekKey = getWeekKey(new Date().toISOString());
   const currentWeekSessions = groupedSessions[currentWeekKey] || {};
-
-  // Read current user for header.
   const currentUser = JSON.parse(localStorage.getItem("user"));
 
-  // ---------- Render ----------
+  /* --------------------- Render Logic ---------------------- */
+
+  // If timer is active, show the TimerScreen.
   if (showTimerScreen) {
     return (
       <div className="app-container">
@@ -533,6 +602,9 @@ function Dashboard() {
           elapsedSeconds={elapsedSeconds}
           formatTime={formatTime}
           stopTimer={stopTimer}
+          isPaused={isPaused}
+          onPause={handlePause}
+          onResume={handleResume}
         />
       </div>
     );
@@ -553,7 +625,6 @@ function Dashboard() {
             </>
           )}
         </div>
-
         <div className="dark-toggle">
           <label className="switch">
             <input
@@ -570,7 +641,7 @@ function Dashboard() {
       <div style={{ fontFamily: 'Arial' }}>
         <h1>Study Timer</h1>
 
-        {/* Add New Topic */}
+        {/* Add New Topic Section */}
         <div className="add-course-wrapper">
           <label style={{ whiteSpace: 'nowrap' }}>Add new Course:</label>
           <input
@@ -603,9 +674,7 @@ function Dashboard() {
                     backgroundColor: isActive ? topic.color : 'transparent',
                     color: isActive ? '#fff' : 'inherit'
                   }}
-                  onClick={() =>
-                    setSubject(prev => (prev === topic.name ? '' : topic.name))
-                  }
+                  onClick={() => setSubject(prev => (prev === topic.name ? '' : topic.name))}
                 >
                   {topic.name}
                   <input
@@ -638,10 +707,21 @@ function Dashboard() {
           </div>
         )}
 
-        {/* Start Timer Button */}
-        {!timerRunning && (
+        {/* Timer Control */}
+        {timerRunning && !showTimerScreen && (
+          <div className="timer-link">
+            <button onClick={() => setShowTimerScreen(true)}>
+              Check your timer!
+            </button>
+          </div>
+        )}
+        {!timerRunning ? (
           <button className="start-button" onClick={startTimer}>
             Start
+          </button>
+        ) : (
+          <button className="start-button" disabled>
+            Check your timer!
           </button>
         )}
 
@@ -657,7 +737,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Reset Data */}
+      {/* Reset Data Section */}
       <div className="reset-button-container">
         <button className="reset-button" onClick={confirmReset}>
           Reset Data
