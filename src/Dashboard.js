@@ -15,7 +15,8 @@ import {
   updateDoc,
   collection,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot
 } from "firebase/firestore";
 
 /* ============================================================================  
@@ -350,18 +351,85 @@ function Dashboard() {
     fetchTopics();
   }, []);
 
-  // Fetch user's sessions.
+  // --- Real-Time Sessions Sync Across Devices ---
   useEffect(() => {
-    const fetchSessions = async () => {
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user) return;
-      const userId = user.uid;
-      const sessionsRef = collection(db, "users", userId, "sessions");
-      const snapshot = await getDocs(sessionsRef);
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) return;
+    const userId = user.uid;
+    const sessionsRef = collection(db, "users", userId, "sessions");
+    // Listen for real-time updates to sessions
+    const unsubscribeSessions = onSnapshot(sessionsRef, (snapshot) => {
       const sessionList = snapshot.docs.map((doc) => doc.data());
       setSessions(sessionList);
+    });
+    return () => {
+      unsubscribeSessions();
     };
-    fetchSessions();
+  }, []);
+
+  // --- Real-Time Timer State Sync Across Devices ---
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) return;
+    const userId = user.uid;
+    const userDocRef = doc(db, "users", userId);
+
+    let intervalId = null;
+    // Listen for timer changes
+    const unsubscribeTimer = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const timerData = data.activeTimer;
+        if (timerData) {
+          setTimerRunning(true);
+          setShowTimerScreen(true);
+          setSubject(timerData.subject);
+          setStartTime(new Date(timerData.startTime));
+          setTotalPausedDuration(timerData.totalPausedDuration || 0);
+          setIsPaused(timerData.isPaused || false);
+          setLastPausedAt(timerData.lastPausedAt ? new Date(timerData.lastPausedAt) : null);
+          // Calculate elapsed seconds
+          let elapsed;
+          if (timerData.isPaused) {
+            elapsed = Math.floor((new Date(timerData.lastPausedAt) - new Date(timerData.startTime)) / 1000 - (timerData.totalPausedDuration || 0));
+          } else {
+            elapsed = Math.floor((Date.now() - new Date(timerData.startTime)) / 1000 - (timerData.totalPausedDuration || 0));
+          }
+          setElapsedSeconds(elapsed > 0 ? elapsed : 0);
+          // Start/clear interval for ticking
+          if (intervalId) clearInterval(intervalId);
+          if (!timerData.isPaused) {
+            intervalId = setInterval(() => {
+              const now = Date.now();
+              const elapsed = Math.floor((now - new Date(timerData.startTime)) / 1000 - (timerData.totalPausedDuration || 0));
+              setElapsedSeconds(elapsed > 0 ? elapsed : 0);
+            }, 1000);
+          }
+        } else {
+          setTimerRunning(false);
+          setShowTimerScreen(false);
+          setElapsedSeconds(0);
+          setSubject("");
+          if (intervalId) clearInterval(intervalId);
+        }
+      }
+    });
+
+    // Listen for topic changes
+    const unsubscribeTopics = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.topics) {
+          setTopics(data.topics);
+        }
+      }
+    });
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      unsubscribeTimer();
+      unsubscribeTopics();
+    };
   }, []);
 
   /* --------------------- User Action Handlers ---------------------- */
@@ -596,6 +664,11 @@ function Dashboard() {
     if (timerRunning) {
       setErrorMessage("You can't change your study topic while a timer is running.");
       setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+    // If the clicked topic is already selected, deselect it
+    if (subject === topicName) {
+      setSubject("");
       return;
     }
     setSubject(topicName);
