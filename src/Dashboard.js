@@ -591,6 +591,16 @@ function Dashboard() {
   const currentWeekSessions = groupedSessions[currentWeekKey] || {};
   const currentUser = JSON.parse(localStorage.getItem("user"));
 
+  // --- Prevent changing subject while timer is running ---
+  const handleSelectTopic = (topicName) => {
+    if (timerRunning) {
+      setErrorMessage("You can't change your study topic while a timer is running.");
+      setTimeout(() => setErrorMessage(""), 3000);
+      return;
+    }
+    setSubject(topicName);
+  };
+
   /* --------------------- Render Logic ---------------------- */
 
   // If timer is active, show the TimerScreen.
@@ -692,26 +702,52 @@ function Dashboard() {
                     backgroundColor: isActive ? topic.color : 'transparent',
                     color: isActive ? '#fff' : 'inherit'
                   }}
-                  onClick={() => setSubject(prev => (prev === topic.name ? '' : topic.name))}
+                  onClick={() => handleSelectTopic(topic.name)}
                 >
                   {topic.name}
                   <input
                     type="color"
                     value={topic.color}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={(e) => updateTopicColor(topic.name, e.target.value)}
+                    onClick={e => e.stopPropagation()}
+                    onChange={e => updateTopicColor(topic.name, e.target.value)}
                     className="tag-color-picker"
                     title="Change color"
+                    disabled={timerRunning}
                   />
                   <span
                     className="tag-remove"
                     title="Remove topic"
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
+                      if (timerRunning && isActive) {
+                        setErrorMessage("You can't delete the active topic while a timer is running.");
+                        setTimeout(() => setErrorMessage(""), 3000);
+                        return;
+                      }
                       removeTopic(topic.name);
                     }}
+                    style={{
+                      cursor: (timerRunning && isActive) ? 'not-allowed' : 'pointer',
+                      color: '#ba2f3d',
+                      marginLeft: 8,
+                      opacity: (timerRunning && isActive) ? 0.5 : 1,
+                      fontWeight: 'bold',
+                      fontSize: '1.2em',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 22,
+                      height: 22,
+                      borderRadius: '50%',
+                      background: (timerRunning && isActive) ? '#eee' : 'transparent',
+                      transition: 'background 0.2s',
+                      border: '1.5px solid #ba2f3d',
+                    }}
                   >
-                    ❌
+                    <svg width="12" height="12" viewBox="0 0 12 12" style={{ display: 'block' }}>
+                      <line x1="2" y1="2" x2="10" y2="10" stroke="#ba2f3d" strokeWidth="2" strokeLinecap="round" />
+                      <line x1="10" y1="2" x2="2" y2="10" stroke="#ba2f3d" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
                   </span>
                 </div>
               );
