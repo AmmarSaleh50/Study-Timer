@@ -1,6 +1,6 @@
 // src/Dashboard.js
 import React, { useState, useEffect } from 'react';
-import { Doughnut } from 'react-chartjs-2';
+import { Doughnut, Bar } from 'react-chartjs-2'; // Import Bar component here
 import 'chart.js/auto';
 import './App.css';
 import { signOut } from "firebase/auth";
@@ -60,25 +60,55 @@ function getWeekRange(date) {
   return { monday, sunday };
 }
 
-function formatDate(date) {
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+function formatSmartDuration(seconds) {
+  if (seconds < 60) return `${seconds}s`;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h`;
+  return `${minutes}m`;
 }
 
 /* -------------------------------------------------------------------------
-   WeeklyStatsCard Component
+   WeeklyStatsCard Component with Tab Navigation & Daily Bar Chart
 -------------------------------------------------------------------------- */
-function WeeklyStatsCard({ sessionsData, topics }) {
-  const subjects = Object.keys(sessionsData || {});
+function WeeklyStatsCard({ sessionsData, topics, sessions }) {
+  // viewMode: 'week', 'today', or 'daily'
+  const [viewMode, setViewMode] = useState("week");
+  const tabs = ["today", "week", "daily"];
+  const tabIndex = tabs.indexOf(viewMode);
+
+
+  // Prepare data based on view mode.
+  let displayData = {};
+  if (viewMode === "week") {
+    // For the week view, use the provided sessionsData (aggregated for the week)
+    displayData = sessionsData;
+  } else if (viewMode === "today") {
+    // Aggregate sessions by subject for today
+    const todayStr = new Date().toISOString().split("T")[0];
+    sessions.forEach((s) => {
+      if (s.startTime.split("T")[0] === todayStr) {
+        displayData[s.subject] = (displayData[s.subject] || 0) + s.durationSeconds;
+      }
+    });
+  }
+  // For daily view, we'll compute data for a stacked bar chart below.
+
+  // Compute total duration for chart summary (only for 'week' and 'today' views)
+  const subjects = Object.keys(displayData);
   const totalDuration = subjects.reduce(
-    (sum, subj) => sum + sessionsData[subj],
+    (sum, subj) => sum + displayData[subj],
     0
   );
 
-  const chartData = {
+  // Prepare chart data if in 'week' or 'today' view (using the Doughnut chart)
+  const doughnutChartData = {
     labels: subjects,
     datasets: [
       {
-        data: subjects.map((subj) => sessionsData[subj]),
+        data: subjects.map((subj) => displayData[subj]),
         backgroundColor: subjects.map((subj) => {
           const topic = topics.find((t) => t.name === subj);
           return topic ? topic.color : '#ccc';
@@ -88,7 +118,7 @@ function WeeklyStatsCard({ sessionsData, topics }) {
     ]
   };
 
-  const chartOptions = {
+  const doughnutChartOptions = {
     plugins: {
       legend: {
         display: false
@@ -102,52 +132,146 @@ function WeeklyStatsCard({ sessionsData, topics }) {
     cutout: '60%'
   };
 
+  // Get week range for header
   const { monday, sunday } = getWeekRange(new Date());
-  const weekRangeStr = `${formatDate(monday)} – ${formatDate(sunday)}`;
+  // For Daily view: Create a stacked bar chart that shows per-day, per-subject durations.
+  let dailyChartData = null;
+  let dailyChartOptions = null;
+  if (viewMode === "daily") {
+    // Build an array of ISO strings and labels for each day in the current week.
+    const dayKeys = [];
+    const dayLabels = [];
+    const currentDate = new Date(monday);
+    while (currentDate <= sunday) {
+      const isoDate = currentDate.toISOString().split("T")[0];
+      dayKeys.push(isoDate);
+      dayLabels.push(
+        currentDate.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        })
+      );
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Prepare datasets: For each topic, get an array of duration totals per day.
+    const datasets = topics.map(topic => {
+      // For each day, sum durations where session.subject matches the topic.
+      const data = dayKeys.map(dayKey => {
+        let sum = 0;
+        sessions.forEach(s => {
+          // Check if session is on this day and matches the topic
+          if (s.subject === topic.name && s.startTime.startsWith(dayKey)) {
+            sum += s.durationSeconds;
+          }
+        });
+        return sum;
+      });
+      return {
+        label: topic.name,
+        data,
+        backgroundColor: topic.color
+      };
+    });
+    
+    dailyChartData = {
+      labels: dayLabels,
+      datasets
+    };
+    
+    dailyChartOptions = {
+      plugins: {
+        legend: {
+          display: false // ✅ Hides the color squares + labels on top
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.dataset.label || '';
+              const value = context.parsed.y;
+              return `${label}: ${formatSmartDuration(value)}`;
+            }
+          }
+        }
+      },
+      
+      legend: {
+        display: false 
+      },
+      responsive: true,
+      scales: {
+        x: {
+          stacked: true
+        },
+        y: {
+          stacked: true,
+          ticks: {
+            callback: function(value) {
+              return formatSmartDuration(value);
+            }
+          }
+        }
+      }
+    };
+  }
 
-  const formatSmartDuration = (seconds) => {
-    if (seconds < 60) return `${seconds}s`;
-  
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-  
-    if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
-    if (hours > 0) return `${hours}h`;
-    return `${minutes}m`;
-  };
-  
   return (
     <div className="stats-card">
       <div className="stats-card-header">
-        <h2>{weekRangeStr}</h2>
-      </div>
-      {subjects.length > 0 ? (
-        <div className="stats-card-content">
-          <div className="stats-chart" style={{ height: "220px" }}>
-            <Doughnut data={chartData} options={chartOptions} />
-          </div>
-          <div className="stats-details">
-            <div className="total-study-time">
-              {formatSmartDuration(totalDuration)}
-            </div>
-            <ul className="stats-topics">
-              {subjects.map((subj) => (
-                <li key={subj}>
-                  <span
-                    className="dot"
-                    style={{
-                      backgroundColor:
-                        topics.find((t) => t.name === subj)?.color || '#ccc'
-                    }}
-                  ></span>
-                  {subj}: {formatSmartDuration(sessionsData[subj])}
-                </li>
+          {/* Tab navigation */}
+          <div className='tabs-wrapper'>
+            <div className="view-tabs">
+              {tabs.map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`tab-button ${viewMode === mode ? 'active' : ''}`}
+                >
+                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                </button>
               ))}
-            </ul>
-          </div>
+              <div
+                className="tab-indicator"
+                style={{ transform: `translateX(${tabIndex * 100}%)` }}
+              />
+            </div>
+          </div> 
+      </div>
+      {viewMode === "daily" ? (
+        // Daily view: Render a stacked Bar chart.
+        <div className="stats-card-content" style={{ height: "300px" }}>
+          {dailyChartData && (
+            <Bar data={dailyChartData} options={dailyChartOptions} />
+          )}
         </div>
       ) : (
-        <p>No study sessions recorded for the current week.</p>
+        // For week and today: display chart and breakdown list
+        <div className="stats-card-content">
+          {subjects.length > 0 ? (
+            <>
+              <div className="stats-chart" style={{ height: "220px" }}>
+                <Doughnut data={doughnutChartData} options={doughnutChartOptions} />
+              </div>
+              <div className="stats-details">
+                <div className="total-study-time">
+                  {formatSmartDuration(totalDuration)}
+                </div>
+                <ul className="stats-topics">
+                  {subjects.map((subj) => (
+                    <li key={subj} className="topic-line">
+                      <span className="dot" style={{ backgroundColor: topics.find((t) => t.name === subj)?.color || '#ccc' }}></span>
+                      <span className="topic-name">{subj}</span>
+                      <span className="topic-time">{formatSmartDuration(displayData[subj])}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          ) : (
+            <p>No study sessions recorded for this view.</p>
+          )}
+        </div>
       )}
     </div>
   );
@@ -380,6 +504,7 @@ function Dashboard() {
       .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Group sessions by week as before.
   const groupSessionsByWeek = () => {
     const groups = {};
     sessions.forEach((session) => {
@@ -463,7 +588,6 @@ function Dashboard() {
           <button onClick={addTopic}>Add</button>
         </div>
 
-
         {/* Select Active Topic */}
         <div style={{ marginBottom: '20px' }}>
           <label>Study Course:</label>
@@ -525,7 +649,11 @@ function Dashboard() {
 
         {/* Weekly Stats Card */}
         <div style={{ marginTop: '20px' }}>
-          <WeeklyStatsCard sessionsData={currentWeekSessions} topics={topics} />
+          <WeeklyStatsCard
+            sessionsData={currentWeekSessions}
+            topics={topics}
+            sessions={sessions}
+          />
         </div>
       </div>
 
