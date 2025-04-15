@@ -719,18 +719,18 @@ function Dashboard() {
                     title="Remove topic"
                     onClick={e => {
                       e.stopPropagation();
-                      if (timerRunning && isActive) {
-                        setErrorMessage("You can't delete the active topic while a timer is running.");
+                      if (timerRunning) {
+                        setErrorMessage("You can't delete topics while a timer is running.");
                         setTimeout(() => setErrorMessage(""), 3000);
                         return;
                       }
                       removeTopic(topic.name);
                     }}
                     style={{
-                      cursor: (timerRunning && isActive) ? 'not-allowed' : 'pointer',
+                      cursor: timerRunning ? 'not-allowed' : 'pointer',
                       color: '#ba2f3d',
                       marginLeft: 8,
-                      opacity: (timerRunning && isActive) ? 0.5 : 1,
+                      opacity: timerRunning ? 0.5 : 1,
                       fontWeight: 'bold',
                       fontSize: '1.2em',
                       display: 'inline-flex',
@@ -739,7 +739,7 @@ function Dashboard() {
                       width: 22,
                       height: 22,
                       borderRadius: '50%',
-                      background: (timerRunning && isActive) ? '#eee' : 'transparent',
+                      background: timerRunning ? '#eee' : 'transparent',
                       transition: 'background 0.2s',
                       border: '1.5px solid #ba2f3d',
                     }}
