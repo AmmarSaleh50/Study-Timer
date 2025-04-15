@@ -18,6 +18,7 @@ import {
   serverTimestamp,
   onSnapshot
 } from "firebase/firestore";
+import { canRead, canWrite, recordRead, recordWrite } from './firestoreQuotaGuard';
 
 /* ============================================================================  
    Helper Functions  
@@ -299,11 +300,16 @@ function Dashboard() {
   // Resume active timer if exists.
   useEffect(() => {
     const fetchTimer = async () => {
+      if (!canRead()) {
+        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        return;
+      }
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) return;
       const userId = user.uid;
       const userDocRef = doc(db, "users", userId);
       const userSnap = await getDoc(userDocRef);
+      recordRead();
       const timerData = userSnap.data()?.activeTimer;
       if (timerData) {
         const start = new Date(timerData.startTime);
@@ -337,11 +343,16 @@ function Dashboard() {
   // Fetch user's topics.
   useEffect(() => {
     const fetchTopics = async () => {
+      if (!canRead()) {
+        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        return;
+      }
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) return;
       const userId = user.uid;
       const userDocRef = doc(db, "users", userId);
       const userSnap = await getDoc(userDocRef);
+      recordRead();
       const userData = userSnap.data();
       if (userData?.topics) {
         setTopics(userData.topics);
@@ -358,7 +369,12 @@ function Dashboard() {
     const sessionsRef = collection(db, "users", userId, "sessions");
     // Listen for real-time updates to sessions
     const unsubscribeSessions = onSnapshot(sessionsRef, (snapshot) => {
+      if (!canRead()) {
+        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        return;
+      }
       const sessionList = snapshot.docs.map((doc) => doc.data());
+      recordRead();
       setSessions(sessionList);
     });
     return () => {
@@ -376,9 +392,14 @@ function Dashboard() {
     let intervalId = null;
     // Listen for timer changes
     const unsubscribeTimer = onSnapshot(userDocRef, (docSnap) => {
+      if (!canRead()) {
+        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        return;
+      }
       if (docSnap.exists()) {
         const data = docSnap.data();
         const timerData = data.activeTimer;
+        recordRead();
         if (timerData) {
           setTimerRunning(true);
           setShowTimerScreen(true);
@@ -416,8 +437,13 @@ function Dashboard() {
 
     // Listen for topic changes
     const unsubscribeTopics = onSnapshot(userDocRef, (docSnap) => {
+      if (!canRead()) {
+        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        return;
+      }
       if (docSnap.exists()) {
         const data = docSnap.data();
+        recordRead();
         if (data.topics) {
           setTopics(data.topics);
         }
@@ -442,6 +468,10 @@ function Dashboard() {
 
   // Add a new topic.
   const addTopic = async () => {
+    if (!canWrite()) {
+      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      return;
+    }
     const name = newTopic.trim();
     if (!name) return;
     if (topics.some((t) => t.name === name)) return;
@@ -453,12 +483,17 @@ function Dashboard() {
     const userId = user.uid;
     const userDocRef = doc(db, "users", userId);
     await setDoc(userDocRef, { topics: updated }, { merge: true });
+    recordWrite();
     setNewTopic("");
     setNewTopicColor("#47449c");
   };
 
   // Start the timer.
   const startTimer = async () => {
+    if (!canWrite()) {
+      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      return;
+    }
     if (!subject || !topics.some((t) => t.name === subject)) {
       setErrorMessage("Please select a study topic before starting.");
       setTimeout(() => setErrorMessage(""), 3000);
@@ -481,6 +516,7 @@ function Dashboard() {
       },
       { merge: true }
     );
+    recordWrite();
     setIsPaused(false);
     setLastPausedAt(null);
     setTotalPausedDuration(0);
@@ -500,11 +536,16 @@ function Dashboard() {
 
   // Stop the timer and record the session.
   const stopTimer = async () => {
+    if (!canRead() || !canWrite()) {
+      alert("You've reached the daily Firestore quota. Please try again tomorrow!");
+      return;
+    }
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
     const userId = user.uid;
     const userDocRef = doc(db, "users", userId);
     const userSnap = await getDoc(userDocRef);
+    recordRead();
     const timerData = userSnap.data()?.activeTimer;
     if (!timerData) return;
     const start = new Date(timerData.startTime);
@@ -518,6 +559,7 @@ function Dashboard() {
       durationSeconds: duration,
       createdAt: serverTimestamp()
     });
+    recordWrite();
     setSessions((prev) => [
       ...prev,
       {
@@ -530,6 +572,7 @@ function Dashboard() {
     await updateDoc(userDocRef, {
       activeTimer: deleteField()
     });
+    recordWrite();
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -542,6 +585,10 @@ function Dashboard() {
 
   // Add pause/resume handlers
   const handlePause = async () => {
+    if (!canWrite()) {
+      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      return;
+    }
     const user = JSON.parse(localStorage.getItem("user"));
     const userId = user.uid;
     const now = new Date();
@@ -550,7 +597,7 @@ function Dashboard() {
       'activeTimer.isPaused': true,
       'activeTimer.lastPausedAt': now.toISOString(),
     });
-    
+    recordWrite();
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -560,6 +607,10 @@ function Dashboard() {
   };
 
   const handleResume = async () => {
+    if (!canWrite()) {
+      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      return;
+    }
     const user = JSON.parse(localStorage.getItem("user"));
     const userId = user.uid;
     const now = new Date();
@@ -572,7 +623,7 @@ function Dashboard() {
       'activeTimer.totalPausedDuration': newTotal,
       'activeTimer.lastPausedAt': null,
     });
-  
+    recordWrite();
     setTotalPausedDuration(newTotal);
     setIsPaused(false);
     
@@ -587,6 +638,10 @@ function Dashboard() {
 
   // Update the color for a specific topic.
   const updateTopicColor = async (topicName, newColor) => {
+    if (!canWrite()) {
+      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      return;
+    }
     const updated = topics.map((t) =>
       t.name === topicName ? { ...t, color: newColor } : t
     );
@@ -595,16 +650,22 @@ function Dashboard() {
     if (!user) return;
     const userId = user.uid;
     await updateDoc(doc(db, "users", userId), { topics: updated });
+    recordWrite();
   };
 
   // Remove a topic.
   const removeTopic = async (topicName) => {
+    if (!canWrite()) {
+      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      return;
+    }
     const updated = topics.filter((t) => t.name !== topicName);
     setTopics(updated);
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
     const userId = user.uid;
     await updateDoc(doc(db, "users", userId), { topics: updated });
+    recordWrite();
     if (subject === topicName) setSubject("");
   };
 
@@ -612,18 +673,25 @@ function Dashboard() {
   const confirmReset = () => setShowResetConfirm(true);
 
   const handleResetConfirmed = async () => {
+    if (!canRead() || !canWrite()) {
+      alert("You've reached the daily Firestore quota. Please try again tomorrow!");
+      return;
+    }
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
     const userId = user.uid;
     const sessionsRef = collection(db, "users", userId, "sessions");
     const snapshot = await getDocs(sessionsRef);
+    recordRead();
     const deletePromises = snapshot.docs.map((docSnap) => deleteDoc(docSnap.ref));
     await Promise.all(deletePromises);
+    recordWrite();
     const userDocRef = doc(db, "users", userId);
     await updateDoc(userDocRef, {
       topics: [],
       activeTimer: deleteField()
     });
+    recordWrite();
     setSessions([]);
     setTopics([]);
     localStorage.removeItem('studySessions');
