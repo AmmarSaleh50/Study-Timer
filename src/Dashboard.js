@@ -19,6 +19,7 @@ import {
   onSnapshot
 } from "firebase/firestore";
 import { canRead, canWrite, recordRead, recordWrite } from './firestoreQuotaGuard';
+import { Link, useLocation } from 'react-router-dom';
 
 /* ============================================================================  
    Helper Functions  
@@ -270,6 +271,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
 ============================================================================ */
 function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Timer and session related states.
   const [topics, setTopics] = useState([]);
@@ -743,77 +745,45 @@ function Dashboard() {
 
   // --- Drawer State ---
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const handleDrawerOpen = () => setDrawerOpen(true);
+  const handleDrawerClose = () => setDrawerOpen(false);
 
-  // --- Touch gesture for opening drawer on mobile ---
-  const touchStartX = useRef(null);
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const handleTouchMove = (e) => {
-    if (touchStartX.current !== null) {
-      const deltaX = e.touches[0].clientX - touchStartX.current;
-      if (deltaX > 60 && touchStartX.current < 40) {
-        setDrawerOpen(true);
-        touchStartX.current = null;
-      }
-    }
-  };
-  const handleTouchEnd = () => {
-    touchStartX.current = null;
-  };
+  // --- Drawer Component ---
+  const Drawer = () => (
+    <div className={`drawer sidebar-drawer${drawerOpen ? ' open' : ''}`} style={{ left: drawerOpen ? 0 : -220, top: 0, height: '100vh', width: 220, zIndex: 1000, position: 'fixed', background: '#232234', boxShadow: '2px 0 12px rgba(0,0,0,0.10)', transition: 'left 0.3s' }}>
+      <div className="drawer-header" style={{padding: '28px 20px 18px 20px'}}>
+        <span style={{ fontWeight: 700, fontSize: 22, color: '#fff' }}>Menu</span>
+        <button onClick={handleDrawerClose} style={{ background: 'none', border: 'none', color: '#fff', float: 'right', fontSize: 24, cursor: 'pointer' }}>&times;</button>
+      </div>
+      <div className="drawer-actions" style={{display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px'}}>
+        <button onClick={() => {navigate('/'); handleDrawerClose();}} style={{background: location.pathname === '/' ? '#47449c' : '#fff', color: location.pathname === '/' ? '#fff' : '#47449c', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer'}}>Dashboard</button>
+        <button onClick={() => {navigate('/routines'); handleDrawerClose();}} style={{background: location.pathname === '/routines' ? '#47449c' : '#fff', color: location.pathname === '/routines' ? '#fff' : '#47449c', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer'}}>Routines</button>
+        <button onClick={handleSignOut} style={{background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24}}>Sign Out</button>
+      </div>
+    </div>
+  );
 
-  // Add touch listeners to the main container
-  useEffect(() => {
-    const container = document.getElementById('main-app-container');
-    if (!container) return;
-    container.addEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchmove', handleTouchMove);
-    container.addEventListener('touchend', handleTouchEnd);
-    return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, []);
+  // --- Drawer Toggle Button ---
+  const DrawerToggle = () => (
+    <div style={{position: 'fixed', top: 18, left: 18, zIndex: 1100}}>
+      <button onClick={handleDrawerOpen} style={{ background: '#232234', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+        <div style={{ width: 28, height: 28, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
+          <div style={{ width: 18, height: 3, background: '#fff', borderRadius: 2 }}></div>
+          <div style={{ width: 18, height: 3, background: '#fff', borderRadius: 2 }}></div>
+          <div style={{ width: 18, height: 3, background: '#fff', borderRadius: 2 }}></div>
+        </div>
+      </button>
+    </div>
+  );
 
   /* --------------------- Render Logic ---------------------- */
 
   // If timer is active, show the TimerScreen.
   if (showTimerScreen) {
     return (
-      <div id="main-app-container" className="app-container" style={{ backgroundColor: cardBg }}>
-        {/* Drawer overlay and drawer */}
-        <div className={`drawer-overlay${drawerOpen ? ' open' : ''}`} onClick={() => setDrawerOpen(false)} />
-        <nav className={`drawer${drawerOpen ? ' open' : ''}`}
-          style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <div style={{ height: '38px' }} />
-          <div className="drawer-color-picker" style={{ marginBottom: 24 }}>
-            <label>Card Color:</label>
-            <input
-              type="color"
-              value={cardBg}
-              onChange={e => setCardBg(e.target.value)}
-            />
-          </div>
-          <div className="drawer-actions">
-            {currentUser ? (
-              <button onClick={handleSignOut}>Sign Out</button>
-            ) : (
-              <>
-                <button onClick={() => navigate('/login')}>Sign In</button>
-                <button onClick={() => navigate('/register')}>Register</button>
-              </>
-            )}
-          </div>
-        </nav>
-        {/* Drawer open button (three centered slashes) */}
-        <button className="drawer-open-btn" onClick={() => setDrawerOpen(true)}>
-          <span className="drawer-slashes">
-            <span className="drawer-slash"></span>
-            <span className="drawer-slash"></span>
-            <span className="drawer-slash"></span>
-          </span>
-        </button>
+      <div id="main-app-container" className="app-container">
+        <DrawerToggle />
+        <Drawer />
         <TimerScreen
           subject={subject}
           elapsedSeconds={elapsedSeconds}
@@ -846,38 +816,9 @@ function Dashboard() {
   }
 
   return (
-    <div id="main-app-container" className="app-container" style={{ backgroundColor: cardBg }}>
-      {/* Drawer open button (three centered slashes only) */}
-      <button className="drawer-open-btn" onClick={() => setDrawerOpen(true)}>
-        <span className="drawer-slashes">
-          <span className="drawer-slash"></span>
-          <span className="drawer-slash"></span>
-          <span className="drawer-slash"></span>
-        </span>
-      </button>
-      <div className={`drawer-overlay${drawerOpen ? ' open' : ''}`} onClick={() => setDrawerOpen(false)} />
-      <nav className={`drawer${drawerOpen ? ' open' : ''}`}
-        style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <div style={{ height: '38px' }} />
-        <div className="drawer-color-picker" style={{ marginBottom: 24 }}>
-          <label>Card Color:</label>
-          <input
-            type="color"
-            value={cardBg}
-            onChange={e => setCardBg(e.target.value)}
-          />
-        </div>
-        <div className="drawer-actions">
-          {currentUser ? (
-            <button onClick={handleSignOut}>Sign Out</button>
-          ) : (
-            <>
-              <button onClick={() => navigate('/login')}>Sign In</button>
-              <button onClick={() => navigate('/register')}>Register</button>
-            </>
-          )}
-        </div>
-      </nav>
+    <div id="main-app-container" className="app-container">
+      <DrawerToggle />
+      <Drawer />
       <div style={{ fontFamily: 'Arial' }}>
         <h1>Study Timer</h1>
 

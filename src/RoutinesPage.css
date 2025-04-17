@@ -1,0 +1,111 @@
+.routines-main-bg {
+  min-height: 100vh;
+  background: #1e1e1e;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.routines-container {
+  max-width: 700px;
+  width: 95vw;
+  background: #232234;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  color: #f2f2f2;
+  margin: 0 auto;
+  position: relative;
+  left: 0;
+  top: 0;
+  transform: none;
+}
+
+@media (min-width: 900px) {
+  .routines-container {
+    margin: 0 auto;
+    width: 700px;
+  }
+}
+
+.routine-day-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.routine-day-selector button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: #2c2c2c;
+  color: #f2f2f2;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background .18s, color .18s;
+}
+.routine-day-selector button.active {
+  background: #47449c;
+  color: #fff;
+}
+.routine-tasks-section {
+  margin-top: 20px;
+}
+.routine-task-list {
+  list-style: none;
+  padding: 0;
+}
+.routine-task-list li {
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  background: #232234;
+  border-radius: 8px;
+  border-left: 8px solid #47449c;
+  color: #f2f2f2;
+}
+.routine-task-edit {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.routine-task-edit input[type="text"] {
+  width: 120px;
+  padding: 4px 8px;
+}
+.routine-task-edit input[type="time"] {
+  width: 100px;
+  padding: 4px 8px;
+}
+.routine-task-edit input[type="color"] {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+}
+.save-btn {
+  background: #47449c;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+.cancel-btn {
+  background: #bbb;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+.delete-btn {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}

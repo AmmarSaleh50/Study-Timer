@@ -41,8 +41,9 @@ export default function Register() {
             padding: "12px",
             fontSize: "16px",
             borderRadius: "8px",
-            border: "1px solid #ccc",
-            backgroundColor: "white"
+            border: "1px solid #333",
+            backgroundColor: "#232234",
+            color: "#f2f2f2"
           }}
         />
         <input
@@ -55,16 +56,17 @@ export default function Register() {
             padding: "12px",
             fontSize: "16px",
             borderRadius: "8px",
-            border: "1px solid #ccc",
-            backgroundColor: "white"
+            border: "1px solid #333",
+            backgroundColor: "#232234",
+            color: "#f2f2f2"
           }}
         />
-        <button type="submit" style={{ width: "100%" }}>
+        <button type="submit" style={{ width: "100%", background: "#47449c", color: "#fff", fontWeight: 600, border: "none", borderRadius: 8, padding: "12px 0", fontSize: "1.1em" }}>
           Register
         </button>
       </form>
 
-      {error && <p style={{ color: "red", marginTop: "12px" }}>{error}</p>}
+      {error && <p style={{ color: "#ff6b6b", marginTop: "12px" }}>{error}</p>}
 
       <p style={{ marginTop: "20px" }}>
         Already have an account?{" "}
@@ -74,9 +76,9 @@ export default function Register() {
       </p>
 
       <p style={{ marginTop: "10px" }}>
-      <Link to="/" style={{ color: "#aaa", fontSize: "14px" }}>
-        ← Back to Main Page
-      </Link>
+        <Link to="/" style={{ color: "#aaa", fontSize: "14px" }}>
+          ← Back to Main Page
+        </Link>
       </p>
     </div>
   );

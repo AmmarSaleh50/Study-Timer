@@ -1,0 +1,68 @@
+.routine-runner {
+  background: #232234;
+  color: #f2f2f2;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 20px 0;
+  max-width: 100%;
+}
+.routine-runner-list {
+  list-style: none;
+  padding: 0;
+}
+.routine-runner-list li {
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  background: #2c2c2c;
+  color: #f2f2f2;
+  border-radius: 8px;
+  border-left: 8px solid #47449c;
+  position: relative;
+}
+.active-task {
+  background: #47449c;
+  color: #fff;
+  border-left: 8px solid #47449c;
+}
+.now-indicator {
+  background: #47449c;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.9em;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}
+.routine-progress {
+  width: 100%;
+  height: 18px;
+  background: #2c2c2c;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 24px 0 0 0;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(80,80,150,0.08);
+}
+.routine-progress-bar {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+.routine-progress-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 0.98em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  text-shadow: 0 1px 4px #232234;
+}
+.routine-runner-empty, .routine-runner-wait {
+  color: #888;
+  margin-top: 24px;
+  text-align: center;
+}
