@@ -757,7 +757,7 @@ function Dashboard() {
       </div>
       <div className="drawer-actions" style={{display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px'}}>
         <button onClick={() => {navigate('/'); handleDrawerClose();}} style={{background: location.pathname === '/' ? '#fff' : '#47449c', color: location.pathname === '/' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10}}>Dashboard</button>
-        <button onClick={() => {navigate('/routines'); handleDrawerClose();}} style={{background: location.pathname === '/routines' ? '#47449c' : '#fff', color: location.pathname === '/routines' ? '#fff' : '#47449c', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer'}}>Routines</button>
+        <button onClick={() => {navigate('/routines'); handleDrawerClose();}} style={{background: location.pathname === '/routines' ? '#fff' : '#47449c', color: location.pathname === '/routines' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer'}}>Routines</button>
         <button onClick={handleSignOut} style={{background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24}}>Sign Out</button>
       </div>
     </div>

@@ -29,6 +29,41 @@
   }
 }
 
+/* Mobile responsiveness for Routines Page */
+@media (max-width: 600px) {
+  .routines-container {
+    width: 100vw;
+    border-radius: 0;
+    padding: 16px;
+  }
+  .routine-day-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 0;
+  }
+  .routine-day-selector button {
+    width: 100%;
+    padding: 10px;
+    font-size: 1em;
+  }
+  .routine-task-list li {
+    padding: 10px;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+  }
+  .routine-task-edit {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .routine-task-edit input[type="text"],
+  .routine-task-edit input[type="time"] {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
 .routine-day-selector {
   display: flex;
   gap: 10px;
