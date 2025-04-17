@@ -78,12 +78,6 @@ export default function Login() {
           Forgot your password?
         </Link>
       </p>
-      <p style={{ marginTop: "10px" }}>
-        <Link to="/" style={{ color: "#aaa", fontSize: "14px" }}>
-          ← Back to Timer
-        </Link>
-      </p>
-
     </div>
   );
 }
