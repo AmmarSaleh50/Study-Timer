@@ -751,12 +751,12 @@ function Dashboard() {
   // --- Drawer Component ---
   const Drawer = () => (
     <div className={`drawer sidebar-drawer${drawerOpen ? ' open' : ''}`} style={{ left: drawerOpen ? 0 : -220, top: 0, height: '100vh', width: 220, zIndex: 1000, position: 'fixed', background: '#232234', boxShadow: '2px 0 12px rgba(0,0,0,0.10)', transition: 'left 0.3s' }}>
-      <div className="drawer-header" style={{padding: '28px 20px 18px 20px'}}>
-        <span style={{ fontWeight: 700, fontSize: 22, color: '#fff' }}>Menu</span>
-        <button onClick={handleDrawerClose} style={{ background: 'none', border: 'none', color: '#fff', float: 'right', fontSize: 24, cursor: 'pointer' }}>&times;</button>
+      <div className="drawer-header-row">
+        <span className="drawer-title"></span>
+        <button className="drawer-close-btn" onClick={handleDrawerClose} aria-label="Close menu">×</button>
       </div>
       <div className="drawer-actions" style={{display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px'}}>
-        <button onClick={() => {navigate('/'); handleDrawerClose();}} style={{background: location.pathname === '/' ? '#47449c' : '#fff', color: location.pathname === '/' ? '#fff' : '#47449c', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer'}}>Dashboard</button>
+        <button onClick={() => {navigate('/'); handleDrawerClose();}} style={{background: location.pathname === '/' ? '#fff' : '#47449c', color: location.pathname === '/' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10}}>Dashboard</button>
         <button onClick={() => {navigate('/routines'); handleDrawerClose();}} style={{background: location.pathname === '/routines' ? '#47449c' : '#fff', color: location.pathname === '/routines' ? '#fff' : '#47449c', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer'}}>Routines</button>
         <button onClick={handleSignOut} style={{background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24}}>Sign Out</button>
       </div>
