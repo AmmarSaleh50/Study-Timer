@@ -1,0 +1,133 @@
+/* Global fade and slide-up animation */
+.fade-slide-in {
+  animation: fadeSlideIn 0.7s cubic-bezier(.4,1.6,.4,1) both;
+}
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade-out for route/page transitions */
+.fade-slide-out {
+  animation: fadeSlideOut 0.5s cubic-bezier(.4,1.6,.4,1) both;
+}
+@keyframes fadeSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* Button pop and ripple */
+.button-pop {
+  transition: transform 0.18s cubic-bezier(.4,1.6,.4,1), box-shadow 0.18s;
+}
+.button-pop:hover, .button-pop:focus {
+  transform: scale(1.09);
+  box-shadow: 0 4px 24px 0 rgba(80,80,180,0.16);
+}
+
+.button-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.button-ripple::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(103,95,192,0.18);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.35s cubic-bezier(.4,1.6,.4,1), height 0.35s cubic-bezier(.4,1.6,.4,1), opacity 0.32s;
+  opacity: 0;
+  pointer-events: none;
+}
+.button-ripple:active::after {
+  width: 180px;
+  height: 180px;
+  opacity: 1;
+  transition: 0s;
+}
+
+/* Card/container entry */
+.card-animate {
+  animation: fadeSlideIn 0.7s cubic-bezier(.4,1.6,.4,1) both;
+}
+
+/* List item add/remove */
+.list-item-enter {
+  animation: fadeSlideIn 0.5s cubic-bezier(.4,1.6,.4,1) both;
+}
+.list-item-exit {
+  animation: fadeSlideOut 0.4s cubic-bezier(.4,1.6,.4,1) both;
+}
+
+/* Heading animation */
+.heading-animate {
+  animation: fadeSlideIn 0.7s cubic-bezier(.4,1.6,.4,1) both;
+}
+
+/* Progress bar fill */
+.animated-progress-bar {
+  transition: width 0.7s cubic-bezier(.4,1.6,.4,1);
+}
+
+/* Drawer Smooth Fade + Slide (no pop/scale) + Blurred Overlay */
+.drawer-enter {
+  transform: translateX(-80px);
+  opacity: 0;
+}
+.drawer-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.44s cubic-bezier(.4,1.2,.4,1), opacity 0.33s cubic-bezier(.4,1.2,.4,1);
+}
+.drawer-exit {
+  transform: translateX(0);
+  opacity: 1;
+}
+.drawer-exit-active {
+  transform: translateX(-80px);
+  opacity: 0;
+  transition: transform 0.32s cubic-bezier(.4,1.2,.4,1), opacity 0.22s cubic-bezier(.4,1.2,.4,1);
+}
+.drawer.open { animation: none !important; }
+
+.drawer-overlay {
+  background: rgba(20,20,40,0.32);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.33s cubic-bezier(.4,1.6,.4,1), backdrop-filter 0.33s cubic-bezier(.4,1.6,.4,1);
+}
+
+/* Modal/Drawer */
+.modal.open {
+  animation: bounceInDrawer 0.55s cubic-bezier(.4,1.6,.4,1) both;
+}
+@keyframes bounceInDrawer {
+  0% {
+    transform: translateX(-120%) scale(0.96);
+    opacity: 0.6;
+  }
+  60% {
+    transform: translateX(12px) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}

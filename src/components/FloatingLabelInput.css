@@ -1,0 +1,135 @@
+.floating-label-input {
+  position: relative;
+  margin: 18px 0 24px 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.floating-label-input input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 14px 14px 14px 14px;
+  font-size: 1em;
+  color: #fff;
+  background: #232234;
+  border: 1.5px solid #47449c;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.22s cubic-bezier(.4,1.6,.4,1), box-shadow 0.22s;
+  box-shadow: 0 2px 12px rgba(44,44,80,0.08);
+}
+.floating-label-input input:focus {
+  border-color: #675fc0;
+  box-shadow: 0 4px 22px rgba(103,95,192,0.13);
+}
+.floating-label-input input[type="text"],
+.floating-label-input input[type="password"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 14px 14px 14px 14px;
+  font-size: 1em;
+  color: #fff;
+  background: #232234;
+  border: 1.5px solid #47449c;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.22s cubic-bezier(.4,1.6,.4,1), box-shadow 0.22s, background 0.18s;
+  box-shadow: 0 2px 12px rgba(44,44,80,0.08);
+  letter-spacing: 0.12em;
+}
+.floating-label-input label {
+  position: absolute;
+  left: 18px;
+  top: 16px;
+  transform: none;
+  color: #8e8ed6;
+  font-size: 1.05em;
+  font-weight: 500;
+  pointer-events: none;
+  background: transparent;
+  transition: 0.22s cubic-bezier(.4,1.6,.4,1);
+  padding: 0 7px;
+  z-index: 2;
+  letter-spacing: 0.01em;
+}
+.floating-label-input.focused label,
+.floating-label-input input:not(:placeholder-shown) + label {
+  top: -13px;
+  left: 12px;
+  font-size: 0.93em;
+  color: #675fc0;
+  background: #232234;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.floating-label-input.with-icon input {
+  padding-right: 44px;
+}
+.input-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #aaa;
+  font-size: 1.18em;
+  transition: color 0.2s, transform 0.2s;
+  z-index: 3;
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+.input-icon:active,
+.input-icon:focus {
+  color: #675fc0;
+  transform: scale(1.18);
+}
+.icon-bounce {
+  animation: bounce-icon 0.23s cubic-bezier(.63,-0.12,.62,1.51);
+}
+@keyframes bounce-icon {
+  0% { transform: translateY(-50%) scale(1); }
+  30% { transform: translateY(-56%) scale(1.22); }
+  60% { transform: translateY(-44%) scale(0.92); }
+  100% { transform: translateY(-50%) scale(1); }
+}
+
+/* Add style for the right element inside FloatingLabelInput */
+.input-right-element {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  z-index: 3;
+  height: 32px;
+}
+
+.floating-label-input.with-right-element input {
+  padding-right: 54px;
+}
+
+.floating-label-input .input-right-element {
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.topic-color-picker-inline {
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  box-shadow: 0 1px 4px #232234;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+}

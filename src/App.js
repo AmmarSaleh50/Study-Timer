@@ -5,6 +5,8 @@ import Register from "./Register";
 import Dashboard from "./Dashboard";
 import RoutinesPage from "./RoutinesPage";
 import ForgotPassword from "./ForgotPassword";
+import HomePage from "./HomePage";
+import './animations.css';
 
 function AppInner() {
   useEffect(() => {
@@ -25,21 +27,23 @@ function AppInner() {
     return <Navigate to="/register" replace />;
   }
 
-  // Prevent going back to timer/dashboard/routines if not logged in
-  if (!isAuth && ["/", "/routines"].includes(location.pathname)) {
+  // Prevent going back to timer/home/routines if not logged in
+  if (!isAuth && ["/", "/home", "/timer", "/routines"].includes(location.pathname)) {
     return <Navigate to="/register" replace />;
   }
 
   return (
-    <>
-      <Routes>
-        <Route path="/" element={isAuth ? <Dashboard /> : <Navigate to="/register" replace />} />
+    <div>
+      <Routes location={location}>
+        <Route path="/" element={isAuth ? <HomePage /> : <Navigate to="/register" replace />} />
+        <Route path="/home" element={isAuth ? <HomePage /> : <Navigate to="/register" replace />} />
+        <Route path="/timer" element={isAuth ? <Dashboard /> : <Navigate to="/register" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/routines" element={isAuth ? <RoutinesPage /> : <Navigate to="/register" replace />} />
       </Routes>
-    </>
+    </div>
   );
 }
 

@@ -19,6 +19,10 @@
   border-radius: 8px;
   border-left: 8px solid #47449c;
   position: relative;
+  animation: fadeSlideIn 0.5s cubic-bezier(.4,1.6,.4,1) both;
+}
+.routine-runner-list li.removing {
+  animation: fadeSlideOut 0.4s cubic-bezier(.4,1.6,.4,1) both;
 }
 .active-task {
   background: #47449c;
@@ -47,7 +51,7 @@
 }
 .routine-progress-bar {
   height: 100%;
-  transition: width 0.5s ease;
+  transition: width 0.7s cubic-bezier(.4,1.6,.4,1);
 }
 .routine-progress-label {
   position: absolute;

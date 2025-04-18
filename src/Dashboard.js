@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import './App.css';
-import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "./firebase";
+import { db } from "./firebase";
 import {
   doc,
   getDoc,
@@ -19,7 +18,8 @@ import {
   onSnapshot
 } from "firebase/firestore";
 import { canRead, canWrite, recordRead, recordWrite } from './firestoreQuotaGuard';
-import { Link, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import FloatingLabelInput from './components/FloatingLabelInput';
 
 /* ============================================================================  
    Helper Functions  
@@ -70,12 +70,12 @@ function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused,
       <div className="big-timer">{formatTime(elapsedSeconds)}</div>
       <div className="timer-controls">
         <button 
-          className={`control-button ${isPaused ? 'resume' : 'pause'}`}
+          className={`control-button ${isPaused ? 'resume' : 'pause'} button-pop button-ripple`}
           onClick={isPaused ? onResume : onPause}
         >
           {isPaused ? 'Resume' : 'Pause'}
         </button>
-        <button className="control-button stop" onClick={stopTimer}>
+        <button className="control-button stop button-pop button-ripple" onClick={stopTimer}>
           Stop
         </button>
       </div>
@@ -213,7 +213,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
-                className={`tab-button ${viewMode === mode ? 'active' : ''}`}
+                className={`tab-button ${viewMode === mode ? 'active' : ''} button-pop button-ripple`}
               >
                 {mode.charAt(0).toUpperCase() + mode.slice(1)}
               </button>
@@ -271,7 +271,6 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
 ============================================================================ */
 function Dashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Timer and session related states.
   const [topics, setTopics] = useState([]);
@@ -290,14 +289,6 @@ function Dashboard() {
   const [totalPausedDuration, setTotalPausedDuration] = useState(0);
   const [lastPausedAt, setLastPausedAt] = useState(null);
   const [startTime, setStartTime] = useState(null);
-
-  // Card background color state (persist in localStorage)
-  const [cardBg, setCardBg] = useState(() => {
-    return localStorage.getItem('cardBg') || '#232234';
-  });
-  useEffect(() => {
-    localStorage.setItem('cardBg', cardBg);
-  }, [cardBg]);
 
   // Resume active timer if exists.
   useEffect(() => {
@@ -330,13 +321,11 @@ function Dashboard() {
         setElapsedSeconds(elapsed);
         
         // Start interval if not paused
-        if (!timerData.isPaused) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          const id = setInterval(() => {
-            setElapsedSeconds(Math.floor((Date.now() - start) / 1000 - (timerData.totalPausedDuration || 0)));
-          }, 1000);
-          intervalRef.current = id;
-        }
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        const id = setInterval(() => {
+          setElapsedSeconds(Math.floor((Date.now() - start) / 1000 - (timerData.totalPausedDuration || 0)));
+        }, 1000);
+        intervalRef.current = id;
       }
     };
     fetchTimer();
@@ -392,6 +381,9 @@ function Dashboard() {
     const userDocRef = doc(db, "users", userId);
 
     let intervalId = null;
+    let lastTimerRunning = timerRunning;
+    let lastShowTimerScreen = showTimerScreen;
+
     // Listen for timer changes
     const unsubscribeTimer = onSnapshot(userDocRef, (docSnap) => {
       if (!canRead()) {
@@ -403,8 +395,10 @@ function Dashboard() {
         const timerData = data.activeTimer;
         recordRead();
         if (timerData) {
-          setTimerRunning(true);
-          setShowTimerScreen(true);
+          if (!lastTimerRunning) setTimerRunning(true);
+          if (!lastShowTimerScreen) setShowTimerScreen(true);
+          lastTimerRunning = true;
+          lastShowTimerScreen = true;
           setSubject(timerData.subject);
           setStartTime(new Date(timerData.startTime));
           setTotalPausedDuration(timerData.totalPausedDuration || 0);
@@ -428,6 +422,8 @@ function Dashboard() {
             }, 1000);
           }
         } else {
+          lastTimerRunning = false;
+          lastShowTimerScreen = false;
           setTimerRunning(false);
           setShowTimerScreen(false);
           setElapsedSeconds(0);
@@ -457,16 +453,11 @@ function Dashboard() {
       unsubscribeTimer();
       unsubscribeTopics();
     };
+    // Only run once on mount
+    // eslint-disable-next-line
   }, []);
 
   /* --------------------- User Action Handlers ---------------------- */
-
-  // Sign Out user.
-  const handleSignOut = async () => {
-    await signOut(auth);
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
 
   // Add a new topic.
   const addTopic = async () => {
@@ -726,7 +717,6 @@ function Dashboard() {
   const groupedSessions = groupSessionsByWeek();
   const currentWeekKey = getWeekKey(new Date().toISOString());
   const currentWeekSessions = groupedSessions[currentWeekKey] || {};
-  const currentUser = JSON.parse(localStorage.getItem("user"));
 
   // --- Prevent changing subject while timer is running ---
   const handleSelectTopic = (topicName) => {
@@ -748,31 +738,110 @@ function Dashboard() {
   const handleDrawerOpen = () => setDrawerOpen(true);
   const handleDrawerClose = () => setDrawerOpen(false);
 
+  // --- Disable body scroll when drawer is open ---
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [drawerOpen]);
+
   // --- Drawer Component ---
+  const drawerVariants = {
+    hidden: { x: '-100%' },
+    visible: { x: 0, transition: { type: 'tween', duration: 0.15 } },
+    exit: { x: '-100%', transition: { type: 'tween', duration: 0.1 } },
+  };
+  const overlayVariants = {
+    hidden: { opacity: 0, backdropFilter: 'blur(0px)', transition: { duration: 0.13 } },
+    visible: { opacity: 1, backdropFilter: 'blur(6px)', transition: { duration: 0.18 } },
+    exit: { opacity: 0, backdropFilter: 'blur(0px)', transition: { duration: 0.13 } },
+  };
   const Drawer = () => (
-    <div className={`drawer sidebar-drawer${drawerOpen ? ' open' : ''}`} style={{ left: drawerOpen ? 0 : -220, top: 0, height: '100vh', width: 220, zIndex: 1000, position: 'fixed', background: '#232234', boxShadow: '2px 0 12px rgba(0,0,0,0.10)', transition: 'left 0.3s' }}>
-      <div className="drawer-header-row">
-        <span className="drawer-title"></span>
-        <button className="drawer-close-btn" onClick={handleDrawerClose} aria-label="Close menu">×</button>
-      </div>
-      <div className="drawer-actions" style={{display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px'}}>
-        <button onClick={() => {navigate('/'); handleDrawerClose();}} style={{background: location.pathname === '/' ? '#fff' : '#47449c', color: location.pathname === '/' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10}}>Dashboard</button>
-        <button onClick={() => {navigate('/routines'); handleDrawerClose();}} style={{background: location.pathname === '/routines' ? '#fff' : '#47449c', color: location.pathname === '/routines' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer'}}>Routines</button>
-        <button onClick={handleSignOut} style={{background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24}}>Sign Out</button>
-      </div>
-    </div>
+    <AnimatePresence initial={false}>
+      {drawerOpen && (
+        <>
+          {/* Overlay Animation */}
+          <motion.div
+            key="drawer-overlay"
+            className="drawer-overlay"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={overlayVariants}
+            style={{ position: 'fixed', top: 0, left: 0, zIndex: 2000, width: '100vw', height: '100vh', pointerEvents: 'auto' }}
+            onClick={handleDrawerClose}
+          />
+          {/* Drawer Panel Animation - covers entire left edge, only left part visible */}
+          <motion.aside
+            key="drawer-panel"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={drawerVariants}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              height: '100vh',
+              width: '100vw', // covers entire screen width
+              zIndex: 2100,
+              background: 'transparent',
+              pointerEvents: 'none', // only panel is interactive
+              display: 'flex',
+              flexDirection: 'row',
+            }}
+          >
+            <div
+              className={`drawer${drawerOpen ? ' open' : ''}`}
+              style={{
+                width: 320,
+                maxWidth: '80vw',
+                height: '100vh',
+                background: '#232234', // or your drawer color
+                boxShadow: '2px 0 16px rgba(44,44,68,0.12)',
+                pointerEvents: 'auto',
+                position: 'relative',
+                zIndex: 2110,
+              }}
+            >
+              <div className="drawer-header-row" style={{ justifyContent: 'center' }}>
+                <span className="drawer-title" style={{ width: '100%', textAlign: 'center', display: 'block' }}>Menu</span>
+                <button className="drawer-close-btn" onClick={handleDrawerClose}>&times;</button>
+              </div>
+              <div className="drawer-actions" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px' }}>
+                <button onClick={() => { navigate('/routines'); handleDrawerClose(); }} style={{ background: '#47449c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10 }} className="button-pop button-ripple">
+                  Routines
+                </button>
+                <button onClick={() => { navigate('/timer'); handleDrawerClose(); }} style={{ background: '#47449c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }} className="button-pop button-ripple">
+                  Study Timer
+                </button>
+                <button onClick={() => { localStorage.clear(); navigate('/login'); }} style={{ background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24 }} className="button-pop button-ripple">
+                  Sign Out
+                </button>
+              </div>
+            </div>
+            {/* The rest of aside is transparent and not interactive */}
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
   );
 
   // --- Drawer Toggle Button ---
   const DrawerToggle = () => (
-    <div style={{position: 'fixed', top: 18, left: 18, zIndex: 1100}}>
-      <button onClick={handleDrawerOpen} style={{ background: '#232234', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-        <div style={{ width: 28, height: 28, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 18, height: 3, background: '#fff', borderRadius: 2 }}></div>
-          <div style={{ width: 18, height: 3, background: '#fff', borderRadius: 2 }}></div>
-          <div style={{ width: 18, height: 3, background: '#fff', borderRadius: 2 }}></div>
-        </div>
-      </button>
+    <div style={{position: 'fixed', top: 18, left: 18, zIndex: 1200}}>
+      {!drawerOpen && (
+        <button onClick={handleDrawerOpen} className="drawer-open-btn button-pop button-ripple">
+          <div className="drawer-slashes">
+            <div className="drawer-slash" />
+            <div className="drawer-slash" />
+            <div className="drawer-slash" />
+          </div>
+        </button>
+      )}
     </div>
   );
 
@@ -781,187 +850,200 @@ function Dashboard() {
   // If timer is active, show the TimerScreen.
   if (showTimerScreen) {
     return (
-      <div id="main-app-container" className="app-container">
+      <div className="dashboard-main-bg fade-slide-in">
         <DrawerToggle />
         <Drawer />
-        <TimerScreen
-          subject={subject}
-          elapsedSeconds={elapsedSeconds}
-          formatTime={formatTime}
-          stopTimer={stopTimer}
-          isPaused={isPaused}
-          onPause={handlePause}
-          onResume={handleResume}
-        />
-        {/* Back to Main Page button below card */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 30 }}>
-          <button
-            className="back-to-main-btn"
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#aaa',
-              fontSize: '14px',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              marginTop: 10
-            }}
-            onClick={() => setShowTimerScreen(false)}
-          >
-        ←Back to Main Page
-          </button>
+        <div className="app-container card-animate">
+          <TimerScreen
+            subject={subject}
+            elapsedSeconds={elapsedSeconds}
+            formatTime={formatTime}
+            stopTimer={stopTimer}
+            isPaused={isPaused}
+            onPause={handlePause}
+            onResume={handleResume}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div id="main-app-container" className="app-container">
+    <div className="dashboard-main-bg fade-slide-in">
       <DrawerToggle />
       <Drawer />
-      <div style={{ fontFamily: 'Arial' }}>
-        <h1>Study Timer</h1>
+      <div className="app-container card-animate">
+        <div style={{ fontFamily: 'Arial' }}>
+          <h1 className="heading-animate">Study Timer</h1>
 
-        {/* Add New Topic Section */}
-        <div className="add-course-wrapper">
-          <label style={{ whiteSpace: 'nowrap' }}>Add new Course:</label>
-          <input
-            type="text"
-            placeholder="e.g. Calculus"
-            value={newTopic}
-            onChange={(e) => setNewTopic(e.target.value)}
-          />
-          <input
-            type="color"
-            value={newTopicColor}
-            onChange={(e) => setNewTopicColor(e.target.value)}
-            title="Choose course color"
-          />
-          <button onClick={addTopic}>Add</button>
-        </div>
-
-        {/* Select Active Topic */}
-        <div style={{ marginBottom: '20px' }}>
-          <label>Study Course:</label>
-          <div className="topics-container">
-            {topics.map(topic => {
-              const isActive = subject === topic.name;
-              return (
-                <div
-                  key={topic.name}
-                  className={`topic-tag ${isActive ? 'active' : ''}`}
-                  style={{
-                    borderColor: topic.color,
-                    backgroundColor: isActive ? topic.color : 'transparent',
-                    color: isActive ? '#fff' : 'inherit'
-                  }}
-                  onClick={() => handleSelectTopic(topic.name)}
-                >
-                  {topic.name}
+          {/* Add New Topic Section */}
+          <div className="add-topic-inline-row" style={{ display: 'flex', alignItems: 'stretch', width: '100%', gap: 0 }}>
+            <div style={{ display: 'flex', flex: 1, alignItems: 'center', minWidth: 0 }}>
+              <FloatingLabelInput
+                type="text"
+                label="Topic name"
+                value={newTopic}
+                onChange={e => setNewTopic(e.target.value)}
+                name="new-topic"
+                required
+                rightElement={
                   <input
                     type="color"
-                    value={topic.color}
-                    onClick={e => e.stopPropagation()}
-                    onChange={e => updateTopicColor(topic.name, e.target.value)}
-                    className="tag-color-picker"
-                    title="Change color"
-                    disabled={timerRunning}
+                    value={newTopicColor}
+                    onChange={e => setNewTopicColor(e.target.value)}
+                    className="topic-color-picker-inline"
+                    title="Pick a color for this topic"
+                    style={{ border: 'none', background: 'none', width: 32, height: 32, borderRadius: 6, boxShadow: '0 1px 4px #232234', cursor: 'pointer', display: 'inline-block', verticalAlign: 'middle', padding: 0 }}
                   />
-                  <span
-                    className="tag-remove"
-                    title="Remove topic"
-                    onClick={e => {
-                      e.stopPropagation();
-                      if (timerRunning) {
-                        setErrorMessage("You can't delete topics while a timer is running.");
-                        setTimeout(() => setErrorMessage(""), 3000);
-                        return;
-                      }
-                      removeTopic(topic.name);
-                    }}
-                    style={{
-                      cursor: timerRunning ? 'not-allowed' : 'pointer',
-                      color: '#ba2f3d',
-                      marginLeft: 8,
-                      opacity: timerRunning ? 0.5 : 1,
-                      fontWeight: 'bold',
-                      fontSize: '1.2em',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 22,
-                      height: 22,
-                      borderRadius: '50%',
-                      background: timerRunning ? '#eee' : 'transparent',
-                      transition: 'background 0.2s',
-                      border: '1.5px solid #ba2f3d',
-                    }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 12 12" style={{ display: 'block' }}>
-                      <line x1="2" y1="2" x2="10" y2="10" stroke="#ba2f3d" strokeWidth="2" strokeLinecap="round" />
-                      <line x1="10" y1="2" x2="2" y2="10" stroke="#ba2f3d" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {errorMessage && (
-          <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>
-            {errorMessage}
-          </div>
-        )}
-
-        {/* Timer Control */}
-        {timerRunning && !showTimerScreen && (
-          <div className="timer-link">
-            <button className="start-button" onClick={() => setShowTimerScreen(true)}>
-              Back to Timer
+                }
+              />
+            </div>
+            <button
+              type="button"
+              className="button-pop button-ripple add-topic-btn"
+              style={{ marginLeft: 16, padding: '12px 18px', fontWeight: 600, fontSize: '1em', borderRadius: 8, background: '#675fc0', color: '#fff', border: 'none', height: 48, alignSelf: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={addTopic}
+              disabled={!newTopic.trim()}
+            >
+              +
             </button>
           </div>
-        )}
-        {!timerRunning ? (
-          <button className="start-button" onClick={startTimer}>
-            Start
-          </button>
-        ) : null}
 
-        <hr style={{ margin: '30px 0' }} />
+          {/* Select Active Topic */}
+          {topics.length > 0 && (
+            <div style={{ marginBottom: '20px' }}>
+              <label>Pick a course to study: </label>
+              <div className="topics-container">
+                {topics.map(topic => {
+                  const isActive = subject === topic.name;
+                  return (
+                    <div
+                      key={topic.name}
+                      className={`topic-tag ${isActive ? 'active' : ''}`}
+                      style={{
+                        borderColor: topic.color,
+                        backgroundColor: isActive ? topic.color : 'transparent',
+                        color: isActive ? '#fff' : 'inherit'
+                      }}
+                      onClick={() => handleSelectTopic(topic.name)}
+                    >
+                      {topic.name}
+                      <input
+                        type="color"
+                        value={topic.color}
+                        onClick={e => e.stopPropagation()}
+                        onChange={e => updateTopicColor(topic.name, e.target.value)}
+                        className="tag-color-picker"
+                        title="Change color"
+                        disabled={timerRunning}
+                      />
+                      <span
+                        className="tag-remove"
+                        title="Remove topic"
+                        onClick={e => {
+                          e.stopPropagation();
+                          if (timerRunning) {
+                            setErrorMessage("You can't delete topics while a timer is running.");
+                            setTimeout(() => setErrorMessage(""), 3000);
+                            return;
+                          }
+                          removeTopic(topic.name);
+                        }}
+                        style={{
+                          cursor: timerRunning ? 'not-allowed' : 'pointer',
+                          color: '#ba2f3d',
+                          marginLeft: 8,
+                          opacity: timerRunning ? 0.5 : 1,
+                          fontWeight: 'bold',
+                          fontSize: '1.2em',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: 22,
+                          height: 22,
+                          borderRadius: '50%',
+                          background: timerRunning ? '#eee' : 'transparent',
+                          transition: 'background 0.2s',
+                          border: '1.5px solid #ba2f3d',
+                        }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 12 12" style={{ display: 'block' }}>
+                          <line x1="2" y1="2" x2="10" y2="10" stroke="#ba2f3d" strokeWidth="2" strokeLinecap="round" />
+                          <line x1="10" y1="2" x2="2" y2="10" stroke="#ba2f3d" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-        {/* Weekly Stats Card */}
-        <div style={{ marginTop: '20px' }}>
-          <WeeklyStatsCard
-            sessionsData={currentWeekSessions}
-            topics={topics}
-            sessions={sessions}
-          />
-        </div>
-      </div>
+          {errorMessage && (
+            <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>
+              {errorMessage}
+            </div>
+          )}
 
-      {/* Reset Data Section */}
-      <div className="reset-button-container">
-        <button className="reset-button" onClick={confirmReset}>
-          Reset Data
-        </button>
-      </div>
-
-      {showResetConfirm && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <p>Are you sure you want to reset all study data?</p>
-            <div className="modal-buttons">
-              <button onClick={handleResetConfirmed} className="confirm">
-                Yes
-              </button>
-              <button onClick={handleResetCancelled} className="cancel">
-                Cancel
+          {/* Timer Control */}
+          {timerRunning && !showTimerScreen && (
+            <div className="timer-link">
+              <button className="start-button button-pop button-ripple" onClick={() => setShowTimerScreen(true)}>
+                Back to Timer
               </button>
             </div>
+          )}
+          {!timerRunning ? (
+            <button
+              className="start-button button-pop button-ripple"
+              onClick={startTimer}
+              disabled={topics.length === 0 || !subject}
+              style={{
+                backgroundColor: topics.length === 0 || !subject ? '#cfcfcf' : '',
+                color: topics.length === 0 || !subject ? '#888' : '',
+                cursor: topics.length === 0 || !subject ? 'not-allowed' : 'pointer',
+                opacity: topics.length === 0 || !subject ? 0.7 : 1
+              }}
+            >
+              Start
+            </button>
+          ) : null}
+
+          <hr style={{ margin: '30px 0' }} />
+
+          {/* Weekly Stats Card */}
+          <div style={{ marginTop: '20px' }}>
+            <WeeklyStatsCard
+              sessionsData={currentWeekSessions}
+              topics={topics}
+              sessions={sessions}
+            />
           </div>
         </div>
-      )}
+
+        {/* Reset Data Section */}
+        <div className="reset-button-container">
+          <button className="reset-button button-pop button-ripple" onClick={confirmReset}>
+            Reset Data
+          </button>
+        </div>
+
+        {showResetConfirm && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <p>Are you sure you want to reset all study data?</p>
+              <div className="modal-buttons">
+                <button onClick={handleResetConfirmed} className="confirm button-pop button-ripple">
+                  Yes
+                </button>
+                <button onClick={handleResetCancelled} className="cancel button-pop button-ripple">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

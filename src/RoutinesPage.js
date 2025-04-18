@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, doc, setDoc, deleteDoc, getDocs, addDoc, getDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, getDocs, addDoc } from 'firebase/firestore';
 import './RoutinesPage.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { AnimatePresence, motion } from 'framer-motion';
+import FloatingLabelInput from './components/FloatingLabelInput';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -30,12 +32,12 @@ function getDefaultTask(existingTasks = []) {
 }
 
 const RoutinesPage = () => {
+  console.log('RoutinesPage mounted');
   const [userId, setUserId] = useState(null);
   const [routines, setRoutines] = useState({}); // { Monday: [task, ...], ... }
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay()]);
   const [editTasks, setEditTasks] = useState([]);
   const [editing, setEditing] = useState(false);
-  const [now, setNow] = useState(new Date());
   const [showLateBtns, setShowLateBtns] = useState(false);
   const [showEarlyBtns, setShowEarlyBtns] = useState(false);
   const [templates, setTemplates] = useState([]); // [{ id, name, tasks }]
@@ -52,30 +54,147 @@ const RoutinesPage = () => {
 
   // --- Drawer/Sidebar State ---
   const [drawerOpen, setDrawerOpen] = useState(false);
+  useEffect(() => { console.log('drawerOpen changed:', drawerOpen); }, [drawerOpen]);
   const handleDrawerOpen = () => setDrawerOpen(true);
   const handleDrawerClose = () => setDrawerOpen(false);
 
-  // --- Utility: Add/Subtract Minutes to All Tasks ---
-  function shiftAllTasks(mins) {
-    if (!routines[selectedDay] || routines[selectedDay].length === 0) return;
-    const pad = n => n.toString().padStart(2, '0');
-    function addMins(time, delta) {
-      let [h, m] = time.split(":").map(Number);
-      let total = h * 60 + m + delta;
-      if (total < 0) total = 0;
-      h = Math.floor(total / 60);
-      m = total % 60;
-      return `${pad(h)}:${pad(m)}`;
-    }
-    const shifted = routines[selectedDay].map(task => ({
-      ...task,
-      startTime: addMins(task.startTime, mins),
-      endTime: addMins(task.endTime, mins)
-    }));
-    setRoutines({ ...routines, [selectedDay]: shifted });
-    if (!editing) setEditTasks(shifted);
-    // Optionally, save to Firestore here if needed
-  }
+  const drawerVariants = {
+    hidden: { x: '-100%' },
+    visible: { x: 0, transition: { type: 'tween', duration: 0.15 } },
+    exit: { x: '-100%', transition: { type: 'tween', duration: 0.1 } },
+  };
+  const overlayVariants = {
+    hidden: { opacity: 0, backdropFilter: 'blur(0px)', transition: { duration: 0.13 } },
+    visible: { opacity: 1, backdropFilter: 'blur(6px)', transition: { duration: 0.18 } },
+    exit: { opacity: 0, backdropFilter: 'blur(0px)', transition: { duration: 0.13 } },
+  };
+
+  const Drawer = () => (
+    <AnimatePresence>
+      {drawerOpen && (
+        <>
+          {/* Overlay Animation */}
+          <motion.div
+            key="drawer-overlay"
+            className="drawer-overlay"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={overlayVariants}
+            style={{ position: 'fixed', top: 0, left: 0, zIndex: 2000, width: '100vw', height: '100vh', pointerEvents: 'auto' }}
+            onClick={handleDrawerClose}
+          />
+          {/* Drawer Panel Animation - covers entire left edge, only left part visible */}
+          <motion.aside
+            key="drawer-panel"
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={drawerVariants}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              height: '100vh',
+              width: '100vw',
+              zIndex: 2100,
+              background: 'transparent',
+              pointerEvents: 'none',
+              display: 'flex',
+              flexDirection: 'row',
+            }}
+          >
+            <div
+              className={`drawer${drawerOpen ? ' open' : ''}`}
+              style={{
+                width: 320,
+                maxWidth: '80vw',
+                height: '100vh',
+                background: '#232234',
+                boxShadow: '2px 0 16px rgba(44,44,68,0.12)',
+                pointerEvents: 'auto',
+                position: 'relative',
+                zIndex: 2110,
+              }}
+            >
+              <div className="drawer-header-row" style={{ justifyContent: 'center' }}>
+                <span className="drawer-title" style={{ width: '100%', textAlign: 'center', display: 'block' }}>Menu</span>
+                <button className="drawer-close-btn" onClick={handleDrawerClose}>&times;</button>
+              </div>
+              <div className="drawer-actions" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px' }}>
+                <button onClick={() => { navigate('/routines'); handleDrawerClose(); }} style={{ background: location.pathname === '/routines' ? '#fff' : '#47449c', color: location.pathname === '/routines' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10 }} className="button-pop button-ripple">
+                  Routines
+                </button>
+                <button onClick={() => { navigate('/timer'); handleDrawerClose(); }} style={{ background: location.pathname === '/timer' ? '#fff' : '#47449c', color: location.pathname === '/timer' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }} className="button-pop button-ripple">
+                  Study Timer
+                </button>
+                <button onClick={() => { localStorage.clear(); navigate('/login'); }} className="button-pop button-ripple" style={{ background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24 }}>Sign Out</button>
+              </div>
+            </div>
+            {/* The rest of aside is transparent and not interactive */}
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
+  const DrawerToggle = () => (
+    <div style={{position: 'fixed', top: 18, left: 18, zIndex: 1200}}>
+      {!drawerOpen && (
+        <button onClick={handleDrawerOpen} className="drawer-open-btn button-pop button-ripple">
+          <div className="drawer-slashes">
+            <div className="drawer-slash" />
+            <div className="drawer-slash" />
+            <div className="drawer-slash" />
+          </div>
+        </button>
+      )}
+    </div>
+  );
+
+  // Save as template
+  const saveAsTemplate = async () => {
+    if (!userId || !newTemplateName.trim()) return;
+    const ref = collection(db, 'users', userId, 'templates');
+    await addDoc(ref, { name: newTemplateName.trim(), tasks: editTasks });
+    setShowTemplateModal(false);
+    setNewTemplateName("");
+    // Refresh templates
+    const snapshot = await getDocs(ref);
+    setTemplates(snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })));
+    showTemplateCardMsg('Template saved');
+  };
+
+  // Apply a template to current day
+  const applyTemplateToDay = async (template) => {
+    setEditTasks(template.tasks);
+    setShowApplyTemplate(false);
+  };
+
+  // Card-style message popup
+  const showTemplateCardMsg = (msg, ms = 1800) => {
+    setTemplateMsg(msg);
+    setTimeout(() => setTemplateMsg(""), ms);
+  };
+
+  // Edit templates (delete)
+  const deleteTemplate = async (id) => {
+    if (!userId) return;
+    await deleteDoc(doc(db, 'users', userId, 'templates', id));
+    setTemplates(templates => templates.filter(t => t.id !== id));
+    showTemplateCardMsg('Template deleted');
+  };
+
+  // Rename template
+  const renameTemplate = async (id, newName) => {
+    if (!userId || !newName.trim()) return;
+    const ref = doc(db, 'users', userId, 'templates', id);
+    await setDoc(ref, { name: newName.trim() }, { merge: true });
+    setTemplates(templates => templates.map(t => t.id === id ? { ...t, name: newName.trim() } : t));
+    setRenameTemplateId(null);
+    setRenameValue("");
+    showTemplateCardMsg('Template renamed');
+  };
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -105,11 +224,6 @@ const RoutinesPage = () => {
     };
     fetchTemplates();
   }, [userId]);
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleDayChange = (day) => {
     setSelectedDay(day);
@@ -168,14 +282,14 @@ const RoutinesPage = () => {
     const [eh, em] = task.endTime.split(":").map(Number);
     const start = sh * 60 + sm;
     const end = eh * 60 + em;
-    const nowMins = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    const nowMins = new Date().getHours() * 60 + new Date().getMinutes() + new Date().getSeconds() / 60;
     if (nowMins < start) return 0;
     if (nowMins >= end) return 100;
     return ((nowMins - start) / (end - start)) * 100;
   }
 
   function getCurrentTaskIdx(tasks) {
-    const nowMins = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    const nowMins = new Date().getHours() * 60 + new Date().getMinutes() + new Date().getSeconds() / 60;
     for (let i = 0; i < tasks.length; ++i) {
       const [sh, sm] = tasks[i].startTime.split(":").map(Number);
       const [eh, em] = tasks[i].endTime.split(":").map(Number);
@@ -186,96 +300,39 @@ const RoutinesPage = () => {
     return -1;
   }
 
-  // --- Drawer/Sidebar Component ---
-  const Drawer = () => (
-    <div className={`drawer sidebar-drawer${drawerOpen ? ' open' : ''}`} style={{ left: drawerOpen ? 0 : -220, top: 0, height: '100vh', width: 220, zIndex: 1000, position: 'fixed', background: '#232234', boxShadow: '2px 0 12px rgba(0,0,0,0.10)', transition: 'left 0.3s' }}>
-      <div className="drawer-header-row">
-        <span className="drawer-title"></span>
-        <button className="drawer-close-btn" onClick={handleDrawerClose} aria-label="Close menu">×</button>
-      </div>
-      <div className="drawer-actions" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px' }}>
-        <button onClick={() => { navigate('/'); handleDrawerClose(); }} style={{ background: location.pathname === '/' ? '#fff' : '#47449c', color: location.pathname === '/' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10 }}>Dashboard</button>
-        <button onClick={() => { navigate('/routines'); handleDrawerClose(); }} style={{ background: location.pathname === '/routines' ? '#fff' : '#47449c', color: location.pathname === '/routines' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Routines</button>
-        <button onClick={() => { localStorage.clear(); navigate('/login'); }} style={{ background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24 }}>Sign Out</button>
-      </div>
-    </div>
-  );
-
-  // --- Drawer Toggle Button ---
-  const DrawerToggle = () => (
-    <div style={{position: 'fixed', top: 18, left: 18, zIndex: 1100}}>
-      <button onClick={handleDrawerOpen} style={{ background: '#232234', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-        <div style={{ width: 28, height: 28, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 18, height: 3, background: '#fff', borderRadius: 2 }}></div>
-          <div style={{ width: 18, height: 3, background: '#fff', borderRadius: 2 }}></div>
-          <div style={{ width: 18, height: 3, background: '#fff', borderRadius: 2 }}></div>
-        </div>
-      </button>
-    </div>
-  );
-
-  // Save as template
-  const saveAsTemplate = async () => {
-    if (!userId || !newTemplateName.trim()) return;
-    const ref = collection(db, 'users', userId, 'templates');
-    await addDoc(ref, { name: newTemplateName.trim(), tasks: editTasks });
-    setShowTemplateModal(false);
-    setNewTemplateName("");
-    // Refresh templates
-    const snapshot = await getDocs(ref);
-    setTemplates(snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })));
-    showTemplateCardMsg('Template saved');
-  };
-
-  // Apply a template to current day
-  const applyTemplateToDay = async (template) => {
-    setEditTasks(template.tasks);
-    setShowApplyTemplate(false);
-  };
-
-  // Card-style message popup
-  const showTemplateCardMsg = (msg, ms = 1800) => {
-    setTemplateMsg(msg);
-    setTimeout(() => setTemplateMsg(""), ms);
-  };
-
-  // Edit templates (delete)
-  const deleteTemplate = async (id) => {
-    if (!userId) return;
-    await deleteDoc(doc(db, 'users', userId, 'templates', id));
-    setTemplates(templates => templates.filter(t => t.id !== id));
-    showTemplateCardMsg('Template deleted');
-  };
-
-  // Rename template
-  const renameTemplate = async (id, newName) => {
-    if (!userId || !newName.trim()) return;
-    const ref = doc(db, 'users', userId, 'templates', id);
-    await setDoc(ref, { name: newName.trim() }, { merge: true });
-    setTemplates(templates => templates.map(t => t.id === id ? { ...t, name: newName.trim() } : t));
-    setRenameTemplateId(null);
-    setRenameValue("");
-    showTemplateCardMsg('Template renamed');
-  };
+  // --- Utility: Add/Subtract Minutes to All Tasks ---
+  function shiftAllTasks(mins) {
+    if (!routines[selectedDay] || routines[selectedDay].length === 0) return;
+    const pad = n => n.toString().padStart(2, '0');
+    function addMins(time, delta) {
+      let [h, m] = time.split(":").map(Number);
+      let total = h * 60 + m + delta;
+      if (total < 0) total = 0;
+      h = Math.floor(total / 60);
+      m = total % 60;
+      return `${pad(h)}:${pad(m)}`;
+    }
+    const shifted = routines[selectedDay].map(task => ({
+      ...task,
+      startTime: addMins(task.startTime, mins),
+      endTime: addMins(task.endTime, mins)
+    }));
+    setRoutines({ ...routines, [selectedDay]: shifted });
+    if (!editing) setEditTasks(shifted);
+    // Optionally, save to Firestore here if needed
+  }
 
   return (
-    <div className="routines-main-bg">
+    <div className="routines-main-bg fade-slide-in">
       <DrawerToggle />
       <Drawer />
-      {templateMsg && (
-        <div style={{ position: 'fixed', top: 30, right: 30, zIndex: 9999 }}>
-          <div style={{ background: '#29294a', color: '#fff', borderRadius: 12, boxShadow: '0 2px 16px #0003', padding: '16px 32px', fontWeight: 600, fontSize: 18, minWidth: 180, textAlign: 'center' }}>
-            {templateMsg}
-          </div>
-        </div>
-      )}
-      <div className="routines-container">
-        <h2 style={{ color: '#47449c', fontWeight: 800 }}>Routines</h2>
+      <div className="routines-container card-animate">
+        <h1 className="heading-animate">Routines</h1>
         <div className="routine-day-selector">
           {DAYS.map(day => (
             <button
               key={day}
-              className={day === selectedDay ? 'active' : ''}
+              className={day === selectedDay ? 'active button-pop button-ripple' : 'button-pop button-ripple'}
               onClick={() => handleDayChange(day)}
             >
               {day}
@@ -325,18 +382,18 @@ const RoutinesPage = () => {
                 </ul>
               ) : <div style={{ color: '#bbb', margin: '16px 0' }}>No routine set for this day.</div>}
               <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-                <button className="save-btn" onClick={startEdit}>
+                <button className="save-btn button-pop button-ripple" onClick={startEdit}>
                   Edit Routine
                 </button>
                 {routines[selectedDay] && routines[selectedDay].length > 0 && (
-                  <button className="delete-btn" onClick={deleteRoutine}>
+                  <button className="delete-btn button-pop button-ripple" onClick={deleteRoutine}>
                     Delete Routine
                   </button>
                 )}
                 {routines[selectedDay] && routines[selectedDay].length > 0 && (
                   <div style={{ display: 'inline-block', position: 'relative' }}>
                     <button
-                      className="save-btn"
+                      className="save-btn button-pop button-ripple"
                       style={{ background: '#ad7c3b', marginLeft: 0 }}
                       onClick={() => { setShowLateBtns(s => !s); if (!showLateBtns) setShowEarlyBtns(false); }}
                     >
@@ -344,9 +401,9 @@ const RoutinesPage = () => {
                     </button>
                     {showLateBtns && (
                       <div style={{ position: 'absolute', left: 0, top: '110%', background: '#232234', borderRadius: 8, boxShadow: '0 2px 8px #0006', zIndex: 10, padding: 10, display: 'flex', gap: 8 }}>
-                        <button className="save-btn" style={{ background: '#ad7c3b' }} onClick={() => { shiftAllTasks(15); setShowLateBtns(false); }}>+15 min</button>
-                        <button className="save-btn" style={{ background: '#ad7c3b' }} onClick={() => { shiftAllTasks(30); setShowLateBtns(false); }}>+30 min</button>
-                        <button className="save-btn" style={{ background: '#ad7c3b' }} onClick={() => { shiftAllTasks(60); setShowLateBtns(false); }}>+1 hour</button>
+                        <button className="save-btn button-pop button-ripple" style={{ background: '#ad7c3b' }} onClick={() => { shiftAllTasks(15); setShowLateBtns(false); }}>+15 min</button>
+                        <button className="save-btn button-pop button-ripple" style={{ background: '#ad7c3b' }} onClick={() => { shiftAllTasks(30); setShowLateBtns(false); }}>+30 min</button>
+                        <button className="save-btn button-pop button-ripple" style={{ background: '#ad7c3b' }} onClick={() => { shiftAllTasks(60); setShowLateBtns(false); }}>+1 hour</button>
                       </div>
                     )}
                   </div>
@@ -355,7 +412,7 @@ const RoutinesPage = () => {
                 {routines[selectedDay] && routines[selectedDay].length > 0 && (
                   <div style={{ display: 'inline-block', position: 'relative' }}>
                     <button
-                      className="save-btn"
+                      className="save-btn button-pop button-ripple"
                       style={{ background: '#5d996c', marginLeft: 0 }}
                       onClick={() => { setShowEarlyBtns(s => !s); if (!showEarlyBtns) setShowLateBtns(false); }}
                     >
@@ -363,9 +420,9 @@ const RoutinesPage = () => {
                     </button>
                     {showEarlyBtns && (
                       <div style={{ position: 'absolute', left: 0, top: '110%', background: '#232234', borderRadius: 8, boxShadow: '0 2px 8px #0006', zIndex: 10, padding: 10, display: 'flex', gap: 8 }}>
-                        <button className="save-btn" style={{ background: '#5d996c' }} onClick={() => { shiftAllTasks(-15); setShowEarlyBtns(false); }}>-15 min</button>
-                        <button className="save-btn" style={{ background: '#5d996c' }} onClick={() => { shiftAllTasks(-30); setShowEarlyBtns(false); }}>-30 min</button>
-                        <button className="save-btn" style={{ background: '#5d996c' }} onClick={() => { shiftAllTasks(-60); setShowEarlyBtns(false); }}>-1 hour</button>
+                        <button className="save-btn button-pop button-ripple" style={{ background: '#5d996c' }} onClick={() => { shiftAllTasks(-15); setShowEarlyBtns(false); }}>-15 min</button>
+                        <button className="save-btn button-pop button-ripple" style={{ background: '#5d996c' }} onClick={() => { shiftAllTasks(-30); setShowEarlyBtns(false); }}>-30 min</button>
+                        <button className="save-btn button-pop button-ripple" style={{ background: '#5d996c' }} onClick={() => { shiftAllTasks(-60); setShowEarlyBtns(false); }}>-1 hour</button>
                       </div>
                     )}
                   </div>
@@ -375,13 +432,13 @@ const RoutinesPage = () => {
           ) : (
             <>
               <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                <button className="save-btn" onClick={() => setShowTemplateModal(true)}>
+                <button className="save-btn button-pop button-ripple" onClick={() => setShowTemplateModal(true)}>
                   Save as Template
                 </button>
-                <button className="save-btn" onClick={() => setShowApplyTemplate(true)}>
+                <button className="save-btn button-pop button-ripple" onClick={() => setShowApplyTemplate(true)}>
                   Apply Template
                 </button>
-                <button className="save-btn" onClick={() => setShowEditTemplates(true)}>
+                <button className="save-btn button-pop button-ripple" onClick={() => setShowEditTemplates(true)}>
                   Edit Templates
                 </button>
               </div>
@@ -416,25 +473,32 @@ const RoutinesPage = () => {
                               }}
                             >
                               <span style={{ cursor: 'grab', fontWeight: 700, fontSize: 20, color: '#47449c', marginRight: 8 }}>≡</span>
-                              <input
+                              <FloatingLabelInput
                                 type="text"
-                                placeholder="Task name"
+                                label="Task name"
                                 value={task.name}
                                 onChange={e => handleTaskChange(idx, 'name', e.target.value)}
-                                style={{ flex: 1, marginRight: 10 }}
+                                name={`task-name-${idx}`}
+                                required
                               />
-                              <input
+                              <FloatingLabelInput
                                 type="time"
+                                label="Start time"
                                 value={task.startTime}
                                 onChange={e => handleTaskChange(idx, 'startTime', e.target.value)}
+                                name={`task-start-${idx}`}
+                                required
                               />
                               <span style={{ margin: '0 6px', color: '#aaa' }}>to</span>
-                              <input
+                              <FloatingLabelInput
                                 type="time"
+                                label="End time"
                                 value={task.endTime}
                                 onChange={e => handleTaskChange(idx, 'endTime', e.target.value)}
+                                name={`task-end-${idx}`}
+                                required
                               />
-                              <button className="delete-btn" onClick={() => removeTask(idx)}>
+                              <button className="delete-btn button-pop button-ripple" onClick={() => removeTask(idx)}>
                                 Delete
                               </button>
                             </li>
@@ -446,13 +510,13 @@ const RoutinesPage = () => {
                   )}
                 </Droppable>
               </DragDropContext>
-              <button className="save-btn" onClick={addTask} style={{ marginTop: 10, marginRight: 8 }}>
+              <button className="save-btn button-pop button-ripple" onClick={addTask} style={{ marginTop: 10, marginRight: 8 }}>
                 + Add Task (auto time)
               </button>
-              <button className="save-btn" onClick={saveRoutine} style={{ marginTop: 10 }}>
+              <button className="save-btn button-pop button-ripple" onClick={saveRoutine} style={{ marginTop: 10 }}>
                 Save
               </button>
-              <button className="cancel-btn" onClick={() => setEditing(false)} style={{ marginTop: 10, marginLeft: 10 }}>
+              <button className="cancel-btn button-pop button-ripple" onClick={() => setEditing(false)} style={{ marginTop: 10, marginLeft: 10 }}>
                 Cancel
               </button>
             </>
@@ -464,18 +528,21 @@ const RoutinesPage = () => {
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 2000, background: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#232234', borderRadius: 16, boxShadow: '0 2px 24px #0006', padding: 32, minWidth: 320, maxWidth: 400 }}>
             <h4 style={{ marginTop: 0, color: '#5d996c' }}>Save as Template</h4>
-            <input
+            <FloatingLabelInput
               type="text"
-              placeholder="Template name"
+              label="Template name"
               value={newTemplateName}
               onChange={e => setNewTemplateName(e.target.value)}
-              style={{ marginBottom: 18, width: '100%', borderRadius: 8, border: '1px solid #47449c', padding: 8, background: '#181828', color: '#fff' }}
+              name="template-name"
+              required
+              autoFocus
+              style={{ marginBottom: 18, width: '100%' }}
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-              <button className="save-btn" onClick={saveAsTemplate} disabled={!newTemplateName.trim()}>
+              <button className="save-btn button-pop button-ripple" onClick={saveAsTemplate} disabled={!newTemplateName.trim()}>
                 Save
               </button>
-              <button className="cancel-btn" onClick={() => setShowTemplateModal(false)}>
+              <button className="cancel-btn button-pop button-ripple" onClick={() => setShowTemplateModal(false)}>
                 Cancel
               </button>
             </div>
@@ -491,13 +558,13 @@ const RoutinesPage = () => {
             {templates.map(t => (
               <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <span>{t.name}</span>
-                <button className="save-btn" onClick={() => applyTemplateToDay(t)}>
+                <button className="save-btn button-pop button-ripple" onClick={() => applyTemplateToDay(t)}>
                   Apply
                 </button>
               </div>
             ))}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18 }}>
-              <button className="cancel-btn" onClick={() => setShowApplyTemplate(false)}>
+              <button className="cancel-btn button-pop button-ripple" onClick={() => setShowApplyTemplate(false)}>
                 Cancel
               </button>
             </div>
@@ -530,24 +597,24 @@ const RoutinesPage = () => {
                   )}
                 </span>
                 {renameTemplateId === t.id ? (
-                  <button className="save-btn" style={{ padding: '2px 10px' }} onClick={() => renameTemplate(t.id, renameValue)} disabled={!renameValue.trim()}>
+                  <button className="save-btn button-pop button-ripple" style={{ padding: '2px 10px' }} onClick={() => renameTemplate(t.id, renameValue)} disabled={!renameValue.trim()}>
                     Save
                   </button>
                 ) : (
-                  <button className="save-btn" style={{ padding: '2px 10px', marginRight: 4 }} onClick={() => { setRenameTemplateId(t.id); setRenameValue(t.name); }}>
+                  <button className="save-btn button-pop button-ripple" style={{ padding: '2px 10px', marginRight: 4 }} onClick={() => { setRenameTemplateId(t.id); setRenameValue(t.name); }}>
                     Rename
                   </button>
                 )}
-                <button className="delete-btn" style={{ background: '#ff6b6b', color: '#fff', borderRadius: 8, padding: '2px 10px', border: 'none' }} onClick={() => deleteTemplate(t.id)}>
+                <button className="delete-btn button-pop button-ripple" style={{ background: '#ff6b6b', color: '#fff', borderRadius: 8, padding: '2px 10px', border: 'none' }} onClick={() => deleteTemplate(t.id)}>
                   Delete
                 </button>
-                <button className="save-btn" style={{ padding: '2px 10px' }} onClick={() => setPreviewTemplate(t)}>
+                <button className="save-btn button-pop button-ripple" style={{ padding: '2px 10px' }} onClick={() => setPreviewTemplate(t)}>
                   Preview
                 </button>
               </div>
             ))}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18 }}>
-              <button className="cancel-btn" onClick={() => setShowEditTemplates(false)}>
+              <button className="cancel-btn button-pop button-ripple" onClick={() => setShowEditTemplates(false)}>
                 Close
               </button>
             </div>
@@ -571,10 +638,17 @@ const RoutinesPage = () => {
               </ul>
             )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18 }}>
-              <button className="cancel-btn" onClick={() => setPreviewTemplate(null)}>
+              <button className="cancel-btn button-pop button-ripple" onClick={() => setPreviewTemplate(null)}>
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {templateMsg && (
+        <div style={{ position: 'fixed', top: 30, right: 30, zIndex: 9999 }}>
+          <div style={{ background: '#29294a', color: '#fff', borderRadius: 12, boxShadow: '0 2px 16px #0003', padding: '16px 32px', fontWeight: 600, fontSize: 18, minWidth: 180, textAlign: 'center' }}>
+            {templateMsg}
           </div>
         </div>
       )}
