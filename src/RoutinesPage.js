@@ -122,7 +122,7 @@ const RoutinesPage = () => {
   );
 
   const DrawerToggle = () => (
-    <div style={{position: 'fixed', top: 18, left: 18, zIndex: 1200}}>
+    <div className="drawer-toggle-wrapper">
       {!drawerOpen && (
         <button onClick={handleDrawerOpen} className="drawer-open-btn button-pop button-ripple">
           <div className="drawer-slashes">
