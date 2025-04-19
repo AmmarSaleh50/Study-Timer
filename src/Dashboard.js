@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import './App.css';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "./firebase";
 import {
   doc,
@@ -257,7 +257,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
               </div>
             </>
           ) : (
-            <p>No study sessions recorded for this view.</p>
+            <p className="stats-no-sessions-message">No study sessions recorded for this view.</p>
           )}
         </div>
       )}
@@ -271,6 +271,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
 ============================================================================ */
 function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Timer and session related states.
   const [topics, setTopics] = useState([]);
@@ -673,20 +674,14 @@ function Dashboard() {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
     const userId = user.uid;
+    // Reset only study sessions (statistics), keep topics and activeTimer
     const sessionsRef = collection(db, "users", userId, "sessions");
     const snapshot = await getDocs(sessionsRef);
     recordRead();
     const deletePromises = snapshot.docs.map((docSnap) => deleteDoc(docSnap.ref));
     await Promise.all(deletePromises);
     recordWrite();
-    const userDocRef = doc(db, "users", userId);
-    await updateDoc(userDocRef, {
-      topics: [],
-      activeTimer: deleteField()
-    });
-    recordWrite();
     setSessions([]);
-    setTopics([]);
     localStorage.removeItem('studySessions');
     setShowResetConfirm(false);
   };
@@ -812,10 +807,10 @@ function Dashboard() {
                 <button className="drawer-close-btn" onClick={handleDrawerClose}>&times;</button>
               </div>
               <div className="drawer-actions" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px' }}>
-                <button onClick={() => { navigate('/routines'); handleDrawerClose(); }} style={{ background: '#47449c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10 }} className="button-pop button-ripple">
+                <button onClick={() => { navigate('/routines'); handleDrawerClose(); }} style={{ background: location.pathname === '/routines' ? '#fff' : '#47449c', color: location.pathname === '/routines' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10 }} className="button-pop button-ripple">
                   Routines
                 </button>
-                <button onClick={() => { navigate('/timer'); handleDrawerClose(); }} style={{ background: '#47449c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }} className="button-pop button-ripple">
+                <button onClick={() => { navigate('/timer'); handleDrawerClose(); }} style={{ background: location.pathname === '/timer' ? '#fff' : '#47449c', color: location.pathname === '/timer' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }} className="button-pop button-ripple">
                   Study Timer
                 </button>
                 <button onClick={() => { localStorage.clear(); navigate('/login'); }} style={{ background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24 }} className="button-pop button-ripple">
@@ -881,7 +876,7 @@ function Dashboard() {
             <div style={{ display: 'flex', flex: 1, alignItems: 'center', minWidth: 0 }}>
               <FloatingLabelInput
                 type="text"
-                label="Topic name"
+                label="Topic name & Color"
                 value={newTopic}
                 onChange={e => setNewTopic(e.target.value)}
                 name="new-topic"
@@ -901,7 +896,7 @@ function Dashboard() {
             <button
               type="button"
               className="button-pop button-ripple add-topic-btn"
-              style={{ marginLeft: 16, padding: '12px 18px', fontWeight: 600, fontSize: '1em', borderRadius: 8, background: '#675fc0', color: '#fff', border: 'none', height: 48, alignSelf: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ marginLeft: 16, padding: '12px 18px', fontWeight: 600, fontSize: '1em', borderRadius: 8, height: 48, alignSelf: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onClick={addTopic}
               disabled={!newTopic.trim()}
             >
@@ -909,10 +904,13 @@ function Dashboard() {
             </button>
           </div>
 
+          {/* Separator after Add button */}
+          <hr className="dashboard-hr-separator" />
+
           {/* Select Active Topic */}
           {topics.length > 0 && (
             <div style={{ marginBottom: '20px' }}>
-              <label>Pick a course to study: </label>
+              <div className="pick-course-label">Pick a course to study:</div>
               <div className="topics-container">
                 {topics.map(topic => {
                   const isActive = subject === topic.name;
@@ -1009,7 +1007,8 @@ function Dashboard() {
             </button>
           ) : null}
 
-          <hr style={{ margin: '30px 0' }} />
+          {/* Separator between Start button and Stats card */}
+          <hr className="dashboard-hr-separator" />
 
           {/* Weekly Stats Card */}
           <div style={{ marginTop: '20px' }}>
@@ -1019,30 +1018,33 @@ function Dashboard() {
               sessions={sessions}
             />
           </div>
-        </div>
 
-        {/* Reset Data Section */}
-        <div className="reset-button-container">
-          <button className="reset-button button-pop button-ripple" onClick={confirmReset}>
-            Reset Data
-          </button>
-        </div>
+          {/* Separator for Dashboard section */}
+          <div className="dashboard-separator"></div>
 
-        {showResetConfirm && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <p>Are you sure you want to reset all study data?</p>
-              <div className="modal-buttons">
-                <button onClick={handleResetConfirmed} className="confirm button-pop button-ripple">
-                  Yes
-                </button>
-                <button onClick={handleResetCancelled} className="cancel button-pop button-ripple">
-                  Cancel
-                </button>
+          {/* Reset Data Section */}
+          <div className="reset-button-container">
+            <button className="reset-button button-pop button-ripple" onClick={confirmReset}>
+              Reset Stats
+            </button>
+          </div>
+
+          {showResetConfirm && (
+            <div className="modal-overlay">
+              <div className="modal">
+                <p>Are you sure you want to reset all study statistics?</p>
+                <div className="modal-buttons">
+                  <button onClick={handleResetConfirmed} className="confirm button-pop button-ripple">
+                    Yes, reset stats
+                  </button>
+                  <button onClick={handleResetCancelled} className="cancel button-pop button-ripple">
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
