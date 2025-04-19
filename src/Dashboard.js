@@ -65,7 +65,7 @@ function formatSmartDuration(seconds) {
 ============================================================================ */
 function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume }) {
   return (
-    <div className="timer-screen">
+    <div className="timer-screen card-animate">
       <h2>Currently Studying: {subject}</h2>
       <div className="big-timer">{formatTime(elapsedSeconds)}</div>
       <div className="timer-controls">

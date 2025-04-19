@@ -42,7 +42,7 @@ export default function Login() {
   // ---------- Render Login Form ----------
   return (
     <div className="home-main-bg fade-slide-in" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="app-container" style={{ maxWidth: "400px", textAlign: "center", width: '100%', background: 'rgba(35,34,52,0.93)', borderRadius: 18, boxShadow: '0 2px 24px #0006', padding: '38px 32px' }}>
+      <div className="login-container card-animate" style={{ maxWidth: "400px", textAlign: "center", width: '100%' }}>
         <h1 style={{ marginBottom: "30px" }}>Login</h1>
         <form onSubmit={loginUser} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <FloatingLabelInput

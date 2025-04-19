@@ -133,11 +133,15 @@
     background: none;
   }
   .routines-container {
-    background: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    background: #232234 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12) !important;
+    padding: 24px 6px 22px 6px !important;
+    margin: 10px 0 !important;
+    width: 97vw !important;
+    max-width: 98vw !important;
+    min-width: 0 !important;
+    display: block !important;
   }
 }
 

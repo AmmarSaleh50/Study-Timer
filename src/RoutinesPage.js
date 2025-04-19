@@ -64,11 +64,6 @@ const RoutinesPage = () => {
     visible: { opacity: 1 },
     exit: { opacity: 0 }
   };
-  const drawerVariants = {
-    hidden: { x: '-120%', scale: 0.98, opacity: 0.7 },
-    visible: { x: 0, scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 80, damping: 23 } },
-    exit: { x: '-120%', scale: 0.98, opacity: 0.7 }
-  };
 
   const Drawer = () => (
     <AnimatePresence initial={false}>
@@ -88,11 +83,10 @@ const RoutinesPage = () => {
           {/* Drawer Panel Animation */}
           <motion.aside
             key="drawer-panel"
-            className={`drawer${drawerOpen ? ' open' : ''}`}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={drawerVariants}
+            className={`drawer`}
+            initial={{ x: '-120%', opacity: 0.65 }}
+            animate={{ x: 0, opacity: 1, transition: { type: 'tween', duration: 2.2, ease: [0.4, 1.6, 0.4, 1] } }}
+            exit={{ x: '-120%', opacity: 0.65, transition: { type: 'tween', duration: 1.6, ease: [0.4, 1.2, 0.4, 1] } }}
             style={{
               position: 'fixed',
               top: 0,
@@ -420,7 +414,7 @@ const RoutinesPage = () => {
                   {routines[selectedDay] && routines[selectedDay].length > 0 && (
                     <button
                       className="save-btn button-pop button-ripple"
-                      style={{ background: '#ad7c3b', marginLeft: 0 }}
+                      style={{ background: '#ad7c3b', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24 }}
                       ref={lateBtnRef}
                       onClick={handleLateBtnClick}
                     >
@@ -430,7 +424,7 @@ const RoutinesPage = () => {
                   {routines[selectedDay] && routines[selectedDay].length > 0 && (
                     <button
                       className="save-btn button-pop button-ripple"
-                      style={{ background: '#5d996c', marginLeft: 0 }}
+                      style={{ background: '#5d996c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24 }}
                       ref={earlyBtnRef}
                       onClick={handleEarlyBtnClick}
                     >
