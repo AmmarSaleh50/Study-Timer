@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import './App.css';
-import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "./firebase";
 import {
   doc,
@@ -18,7 +17,6 @@ import {
   onSnapshot
 } from "firebase/firestore";
 import { canRead, canWrite, recordRead, recordWrite } from './firestoreQuotaGuard';
-import { AnimatePresence, motion } from 'framer-motion';
 import FloatingLabelInput from './components/FloatingLabelInput';
 
 /* ============================================================================  
@@ -270,9 +268,6 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
    - Main component handling timer, sessions, topics, user actions and rendering.  
 ============================================================================ */
 function Dashboard() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
   // Timer and session related states.
   const [topics, setTopics] = useState([]);
   const [newTopic, setNewTopic] = useState('');
@@ -728,126 +723,12 @@ function Dashboard() {
     setSubject(topicName);
   };
 
-  // --- Drawer State ---
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const handleDrawerOpen = () => setDrawerOpen(true);
-  const handleDrawerClose = () => setDrawerOpen(false);
-
-  // --- Disable body scroll when drawer is open ---
-  useEffect(() => {
-    if (drawerOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [drawerOpen]);
-
-  // --- Drawer Component ---
-  const drawerVariants = {
-    hidden: { x: '-100%' },
-    visible: { x: 0, transition: { type: 'tween', duration: 0.15 } },
-    exit: { x: '-100%', transition: { type: 'tween', duration: 0.1 } },
-  };
-  const overlayVariants = {
-    hidden: { opacity: 0, backdropFilter: 'blur(0px)', transition: { duration: 0.13 } },
-    visible: { opacity: 1, backdropFilter: 'blur(6px)', transition: { duration: 0.18 } },
-    exit: { opacity: 0, backdropFilter: 'blur(0px)', transition: { duration: 0.13 } },
-  };
-  const Drawer = () => (
-    <AnimatePresence initial={false}>
-      {drawerOpen && (
-        <>
-          {/* Overlay Animation */}
-          <motion.div
-            key="drawer-overlay"
-            className="drawer-overlay"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={overlayVariants}
-            style={{ position: 'fixed', top: 0, left: 0, zIndex: 2000, width: '100vw', height: '100vh', pointerEvents: 'auto' }}
-            onClick={handleDrawerClose}
-          />
-          {/* Drawer Panel Animation - covers entire left edge, only left part visible */}
-          <motion.aside
-            key="drawer-panel"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={drawerVariants}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              height: '100vh',
-              width: '100vw', // covers entire screen width
-              zIndex: 2100,
-              background: 'transparent',
-              pointerEvents: 'none', // only panel is interactive
-              display: 'flex',
-              flexDirection: 'row',
-            }}
-          >
-            <div
-              className={`drawer${drawerOpen ? ' open' : ''}`}
-              style={{
-                width: 320,
-                maxWidth: '80vw',
-                height: '100vh',
-                background: '#232234', // or your drawer color
-                boxShadow: '2px 0 16px rgba(44,44,68,0.12)',
-                pointerEvents: 'auto',
-                position: 'relative',
-                zIndex: 2110,
-              }}
-            >
-              <div className="drawer-header-row" style={{ justifyContent: 'center' }}>
-                <span className="drawer-title" style={{ width: '100%', textAlign: 'center', display: 'block' }}>Menu</span>
-                <button className="drawer-close-btn" onClick={handleDrawerClose}>&times;</button>
-              </div>
-              <div className="drawer-actions" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px' }}>
-                <button onClick={() => { navigate('/routines'); handleDrawerClose(); }} style={{ background: location.pathname === '/routines' ? '#fff' : '#47449c', color: location.pathname === '/routines' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10 }} className="button-pop button-ripple">
-                  Routines
-                </button>
-                <button onClick={() => { navigate('/timer'); handleDrawerClose(); }} style={{ background: location.pathname === '/timer' ? '#fff' : '#47449c', color: location.pathname === '/timer' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }} className="button-pop button-ripple">
-                  Study Timer
-                </button>
-                <button onClick={() => { localStorage.clear(); navigate('/login'); }} style={{ background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24 }} className="button-pop button-ripple">
-                  Sign Out
-                </button>
-              </div>
-            </div>
-            {/* The rest of aside is transparent and not interactive */}
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
-  );
-
-  // --- Drawer Toggle Button ---
-  const DrawerToggle = () => (
-    <div className="drawer-toggle-wrapper">
-      {!drawerOpen && (
-        <button onClick={handleDrawerOpen} className="drawer-open-btn button-pop button-ripple">
-          <div className="drawer-slashes">
-            <div className="drawer-slash" />
-            <div className="drawer-slash" />
-            <div className="drawer-slash" />
-          </div>
-        </button>
-      )}
-    </div>
-  );
-
   /* --------------------- Render Logic ---------------------- */
 
   // If timer is active, show the TimerScreen.
   if (showTimerScreen) {
     return (
       <div className="dashboard-main-bg fade-slide-in">
-        <DrawerToggle />
-        <Drawer />
         <div className="app-container card-animate">
           <TimerScreen
             subject={subject}
@@ -865,8 +746,6 @@ function Dashboard() {
 
   return (
     <div className="dashboard-main-bg fade-slide-in">
-      <DrawerToggle />
-      <Drawer />
       <div className="app-container card-animate">
         <div style={{ fontFamily: 'Arial' }}>
           <h1 className="heading-animate">Study Timer</h1>

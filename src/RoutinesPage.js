@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, doc, setDoc, deleteDoc, getDocs, addDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import './RoutinesPage.css';
-import { useNavigate, useLocation } from 'react-router-dom';
 import FloatingLabelInput from './components/FloatingLabelInput';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { generateTaskId } from './utils';
-import { AnimatePresence, motion } from 'framer-motion';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -46,171 +44,60 @@ const RoutinesPage = () => {
   const [newTemplateName, setNewTemplateName] = useState("");
   const [showApplyTemplate, setShowApplyTemplate] = useState(false);
   const [showEditTemplates, setShowEditTemplates] = useState(false);
-  const [templateMsg, setTemplateMsg] = useState("");
   const [renameTemplateId, setRenameTemplateId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
   const [previewTemplate, setPreviewTemplate] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // --- Drawer/Sidebar State ---
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  useEffect(() => { console.log('drawerOpen changed:', drawerOpen); }, [drawerOpen]);
-  const handleDrawerOpen = () => setDrawerOpen(true);
-  const handleDrawerClose = () => setDrawerOpen(false);
-
-  const overlayVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-    exit: { opacity: 0 }
-  };
-
-  const Drawer = () => (
-    <AnimatePresence initial={false}>
-      {drawerOpen && (
-        <>
-          {/* Overlay Animation */}
-          <motion.div
-            key="drawer-overlay"
-            className="drawer-overlay"
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={overlayVariants}
-            style={{ position: 'fixed', top: 0, left: 0, zIndex: 2000, width: '100vw', height: '100vh', pointerEvents: 'auto' }}
-            onClick={handleDrawerClose}
-          />
-          {/* Drawer Panel Animation */}
-          <motion.aside
-            key="drawer-panel"
-            className={`drawer`}
-            initial={{ x: '-120%', opacity: 0.65 }}
-            animate={{ x: 0, opacity: 1, transition: { type: 'tween', duration: 2.2, ease: [0.4, 1.6, 0.4, 1] } }}
-            exit={{ x: '-120%', opacity: 0.65, transition: { type: 'tween', duration: 1.6, ease: [0.4, 1.2, 0.4, 1] } }}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              height: '100vh',
-              width: 320,
-              maxWidth: '80vw',
-              background: '#232234',
-              boxShadow: '2px 0 16px rgba(44,44,68,0.12)',
-              pointerEvents: 'auto',
-              zIndex: 2110,
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <div className="drawer-header-row" style={{ justifyContent: 'center' }}>
-              <span className="drawer-title" style={{ width: '100%', textAlign: 'center', display: 'block' }}>Menu</span>
-              <button className="drawer-close-btn" onClick={handleDrawerClose}>&times;</button>
-            </div>
-            <div className="drawer-actions" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 20px' }}>
-              <button onClick={() => { navigate('/routines'); handleDrawerClose(); }} style={{ background: location.pathname === '/routines' ? '#fff' : '#47449c', color: location.pathname === '/routines' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginBottom: 10 }} className="button-pop button-ripple">
-                Routines
-              </button>
-              <button onClick={() => { navigate('/timer'); handleDrawerClose(); }} style={{ background: location.pathname === '/timer' ? '#fff' : '#47449c', color: location.pathname === '/timer' ? '#47449c' : '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }} className="button-pop button-ripple">
-                Study Timer
-              </button>
-              <button onClick={() => { localStorage.clear(); navigate('/login'); }} className="button-pop button-ripple" style={{ background: '#e74c3c', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer', marginTop: 24 }}>Sign Out</button>
-            </div>
-          </motion.aside>
-        </>
-      )}
-    </AnimatePresence>
-  );
-
-  const DrawerToggle = () => (
-    <div className="drawer-toggle-wrapper">
-      {!drawerOpen && (
-        <button onClick={handleDrawerOpen} className="drawer-open-btn button-pop button-ripple">
-          <div className="drawer-slashes">
-            <div className="drawer-slash" />
-            <div className="drawer-slash" />
-            <div className="drawer-slash" />
-          </div>
-        </button>
-      )}
-    </div>
-  );
-
-  // Save as template
-  const saveAsTemplate = async () => {
-    if (!userId || !newTemplateName.trim()) return;
-    const ref = collection(db, 'users', userId, 'templates');
-    await addDoc(ref, { name: newTemplateName.trim(), tasks: editTasks });
-    setShowTemplateModal(false);
-    setNewTemplateName("");
-    // Refresh templates
-    const snapshot = await getDocs(ref);
-    setTemplates(snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })));
-    showTemplateCardMsg('Template saved');
-  };
-
-  // Apply a template to current day
-  const applyTemplateToDay = async (template) => {
-    setEditTasks(template.tasks.map(t => ({ ...t, id: t.id || generateTaskId() })));
-    setShowApplyTemplate(false);
-  };
-
-  // Card-style message popup
-  const showTemplateCardMsg = (msg, ms = 1800) => {
-    setTemplateMsg(msg);
-    setTimeout(() => setTemplateMsg(""), ms);
-  };
-
-  // Edit templates (delete)
-  const deleteTemplate = async (id) => {
-    if (!userId) return;
-    await deleteDoc(doc(db, 'users', userId, 'templates', id));
-    setTemplates(templates => templates.filter(t => t.id !== id));
-    showTemplateCardMsg('Template deleted');
-  };
-
-  // Rename template
-  const renameTemplate = async (id, newName) => {
-    if (!userId || !newName.trim()) return;
-    const ref = doc(db, 'users', userId, 'templates', id);
-    await setDoc(ref, { name: newName.trim() }, { merge: true });
-    setTemplates(templates => templates.map(t => t.id === id ? { ...t, name: newName.trim() } : t));
-    setRenameTemplateId(null);
-    setRenameValue("");
-    showTemplateCardMsg('Template renamed');
-  };
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) setUserId(user.uid);
   }, []);
 
+  // --- Realtime Firestore listeners for routines and templates ---
   useEffect(() => {
     if (!userId) return;
-    const fetchRoutines = async () => {
-      const routinesRef = collection(db, 'users', userId, 'routines');
-      const snapshot = await getDocs(routinesRef);
+    // --- Listen for routines changes ---
+    const routinesRef = collection(db, 'users', userId, 'routines');
+    const unsubRoutines = onSnapshot(routinesRef, (snapshot) => {
       const data = {};
       snapshot.forEach(docSnap => {
-        // Add id if missing
         data[docSnap.id] = (docSnap.data().tasks || []).map(t => ({ ...t, id: t.id || generateTaskId() }));
       });
       setRoutines(data);
-    };
-    fetchRoutines();
-  }, [userId]);
-
-  useEffect(() => {
-    if (!userId) return;
-    const fetchTemplates = async () => {
-      const ref = collection(db, 'users', userId, 'templates');
-      const snapshot = await getDocs(ref);
+    });
+    // --- Listen for templates changes ---
+    const templatesRef = collection(db, 'users', userId, 'templates');
+    const unsubTemplates = onSnapshot(templatesRef, (snapshot) => {
       setTemplates(snapshot.docs.map(docSnap => {
         const t = docSnap.data();
         return { ...t, id: docSnap.id, tasks: (t.tasks || []).map(task => ({ ...task, id: task.id || generateTaskId() })) };
       }));
+    });
+    return () => {
+      unsubRoutines();
+      unsubTemplates();
     };
-    fetchTemplates();
   }, [userId]);
+
+  // Add effect to update selectedDay at midnight
+  useEffect(() => {
+    // Set selectedDay on mount and at every midnight
+    const updateDay = () => setSelectedDay(DAYS[new Date().getDay()]);
+    updateDay(); // Set immediately
+
+    // Calculate ms until next midnight
+    const now = new Date();
+    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0) - now;
+    const midnightTimeout = setTimeout(() => {
+      updateDay();
+      // After the first midnight, update every 24h
+      setInterval(updateDay, 24 * 60 * 60 * 1000);
+    }, msUntilMidnight);
+
+    return () => {
+      clearTimeout(midnightTimeout);
+    };
+  }, []);
 
   const handleDayChange = (day) => {
     setSelectedDay(day);
@@ -343,8 +230,6 @@ const RoutinesPage = () => {
     <>
       <div id="dnd-portal-root"></div>
       <div className="routines-main-bg">
-        <DrawerToggle />
-        <Drawer />
         <div className="routines-container">
           <h1 className="heading-animate fade-slide-in">Routines</h1>
           <div className="routine-day-selector card-animate">
@@ -578,11 +463,11 @@ const RoutinesPage = () => {
                 style={{ marginBottom: 18, width: '100%' }}
               />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button className="save-btn button-pop button-ripple" onClick={saveAsTemplate} disabled={!newTemplateName.trim()}>
-                  Save
-                </button>
-                <button className="cancel-btn button-pop button-ripple" onClick={() => setShowTemplateModal(false)}>
+                <button className="save-btn button-pop button-ripple" onClick={() => setShowTemplateModal(false)}>
                   Cancel
+                </button>
+                <button className="save-btn button-pop button-ripple" onClick={() => setShowTemplateModal(false)}>
+                  Save
                 </button>
               </div>
             </div>
@@ -597,7 +482,7 @@ const RoutinesPage = () => {
               {templates.map(t => (
                 <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <span>{t.name}</span>
-                  <button className="save-btn button-pop button-ripple" onClick={() => applyTemplateToDay(t)}>
+                  <button className="save-btn button-pop button-ripple" onClick={() => setEditTasks(t.tasks)}>
                     Apply
                   </button>
                 </div>
@@ -626,7 +511,7 @@ const RoutinesPage = () => {
                         onChange={e => setRenameValue(e.target.value)}
                         onBlur={() => setRenameTemplateId(null)}
                         onKeyDown={e => {
-                          if (e.key === 'Enter') renameTemplate(t.id, renameValue);
+                          if (e.key === 'Enter') setRenameTemplateId(null);
                           if (e.key === 'Escape') setRenameTemplateId(null);
                         }}
                         style={{ borderRadius: 6, border: '1px solid #47449c', padding: '2px 8px', width: '80%' }}
@@ -636,7 +521,7 @@ const RoutinesPage = () => {
                     )}
                   </span>
                   {renameTemplateId === t.id ? (
-                    <button className="save-btn button-pop button-ripple" style={{ padding: '2px 10px' }} onClick={() => renameTemplate(t.id, renameValue)} disabled={!renameValue.trim()}>
+                    <button className="save-btn button-pop button-ripple" style={{ padding: '2px 10px' }} onClick={() => setRenameTemplateId(null)} disabled={!renameValue.trim()}>
                       Save
                     </button>
                   ) : (
@@ -644,7 +529,7 @@ const RoutinesPage = () => {
                       Rename
                     </button>
                   )}
-                  <button className="delete-btn button-pop button-ripple" style={{ background: '#ff6b6b', color: '#fff', borderRadius: 8, padding: '2px 10px', border: 'none' }} onClick={() => deleteTemplate(t.id)}>
+                  <button className="delete-btn button-pop button-ripple" style={{ background: '#ff6b6b', color: '#fff', borderRadius: 8, padding: '2px 10px', border: 'none' }} onClick={() => setTemplates(templates.filter(template => template.id !== t.id))}>
                     Delete
                   </button>
                   <button className="save-btn button-pop button-ripple" style={{ padding: '2px 10px' }} onClick={() => setPreviewTemplate(t)}>
@@ -681,13 +566,6 @@ const RoutinesPage = () => {
                   Close
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-        {templateMsg && (
-          <div style={{ position: 'fixed', top: 30, right: 30, zIndex: 9999 }}>
-            <div style={{ background: '#29294a', color: '#fff', borderRadius: 12, boxShadow: '0 2px 16px #0003', padding: '16px 32px', fontWeight: 600, fontSize: 18, minWidth: 180, textAlign: 'center' }}>
-              {templateMsg}
             </div>
           </div>
         )}
