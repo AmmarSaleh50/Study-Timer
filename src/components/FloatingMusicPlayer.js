@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import SpotifyPlayerControls from './SpotifyPlayerControls';
 import SpotifySearchBar from './SpotifySearchBar';
+import Select from 'react-select';
 
 // Simple music note icon SVG for the button
 const MusicNoteIcon = (
@@ -303,7 +304,7 @@ export default function FloatingMusicPlayer() {
       <button
         onClick={() => setPanelOpen(o => !o)}
         style={{
-          position: 'fixed', left: 32, bottom: 32, zIndex: 9999,
+          position: 'fixed', left: 32, bottom: 32, zIndex: 10002,
           width: 40, height: 40, borderRadius: 14,
           background: '#232234', color: '#fff', border: 'none', boxShadow: '0 2px 8px #0003',
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -315,15 +316,15 @@ export default function FloatingMusicPlayer() {
         {MusicNoteIcon}
       </button>
 
-      {/* Dropdown Card */}
+      {/* Dropdown Card: Only controls and dropdown/select */}
       {panelOpen && (
         <div
           style={{
-            position: 'fixed', left: 32, bottom: 76, zIndex: 9999,
-            background: '#18182b', color: '#fff',
+            position: 'fixed', left: -110, bottom: 76, zIndex: 10001,
+            width: 340, maxWidth: '90vw', background: '#18182b', color: '#fff',
             borderRadius: 14, boxShadow: '0 4px 24px #0005',
             padding: 0, minWidth: 40, minHeight: 40,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start',
             animation: 'fadeSlideIn 0.2s',
           }}
         >
@@ -331,7 +332,7 @@ export default function FloatingMusicPlayer() {
           {!accessToken && !showConnect && (
             <button
               style={{
-                background: 'transparent', border: 'none', padding: 16, cursor: 'pointer',
+                background: 'transparent', border: 'none', padding: 24, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
               onClick={() => setShowConnect(true)}
@@ -340,7 +341,7 @@ export default function FloatingMusicPlayer() {
               <img
                 src={process.env.PUBLIC_URL + '/2024-spotify-logo-icon/Spotify_Primary_Logo_RGB_Green.png'}
                 alt="Spotify Logo"
-                style={{ height: 40, width: 120, objectFit: 'contain', display: 'block' }}
+                style={{ height: 60, width: 180, objectFit: 'contain', display: 'block' }}
                 draggable={false}
                 onDragStart={e => e.preventDefault()}
               />
@@ -367,95 +368,146 @@ export default function FloatingMusicPlayer() {
           {/* Already Connected UI */}
           {accessToken && (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', fontSize: 15, color: '#aaa', marginBottom: 6, gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', fontSize: 15, color: '#aaa', marginBottom: -2,marginTop: 4, gap: 8 }}>
                 <img src={process.env.PUBLIC_URL + '/2024-spotify-logo-icon/Spotify_Primary_Logo_RGB_Green.png'} alt="Spotify Logo" style={{ height: 22, width: 22, objectFit: 'contain', verticalAlign: 'middle', marginRight: 4 }} draggable={false} onDragStart={e => e.preventDefault()} />
-                {user && user.display_name ? `Logged in as ${user.display_name}` : 'Connected to Spotify!'}
+                {user && user.display_name ? `Connected to Spotify as ${user.display_name}` : 'Connecting to Spotify...'}
               </div>
               {/* Spotify Search Bar */}
+              {/**
               <SpotifySearchBar accessToken={accessToken} onResultSelect={setSearchSelected} />
-              {/* Show search result details and play button for tracks */}
-              {searchSelected && searchSelected._type === 'track' && (
-                <div style={{
-                  background: '#232234',
-                  borderRadius: 18,
-                  padding: 32,
-                  marginBottom: 18,
-                  color: '#fff',
-                  width: 420,
-                  maxWidth: '100%',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                  boxShadow: '0 4px 32px #0006',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 32,
-                }}>
-                  {searchSelected.album?.images?.[0]?.url && (
-                    <img src={searchSelected.album.images[0].url} alt="" style={{ width: 120, height: 120, borderRadius: 12, boxShadow: '0 2px 12px #0004' }} />
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 26, marginBottom: 8 }}>{searchSelected.name}</div>
-                    <div style={{ color: '#aaa', fontSize: 19, marginBottom: 8 }}>{searchSelected.artists?.map(a => a.name).join(', ')}</div>
-                  </div>
-                  <button onClick={async () => {
-                    await fetch('https://api.spotify.com/v1/me/player/play', {
-                      method: 'PUT',
-                      headers: { Authorization: `Bearer ${accessToken}` },
-                      body: JSON.stringify({ uris: [searchSelected.uri] })
-                    });
-                  }} style={{ background: '#1db954', color: '#fff', fontWeight: 600, border: 'none', borderRadius: 12, padding: '18px 38px', fontSize: 22, cursor: 'pointer', boxShadow: '0 2px 12px #0003' }}>Play</button>
-                </div>
-              )}
+              */}
               {/* Playlist selection dropdown */}
               {playlists.length > 0 && (
-                <select
-                  value={selectedPlaylist || ''}
-                  onChange={e => setSelectedPlaylist(e.target.value)}
-                  style={{
-                    borderRadius: 8, border: '1px solid #47449c', padding: '8px 12px',
-                    fontSize: 15, background: '#232234', color: '#fff', width: '100%', marginBottom: 8,
+                <Select
+                  options={playlists.map(pl => ({ value: pl.id, label: pl.name }))}
+                  value={playlists.find(pl => pl.id === selectedPlaylist) ? { value: selectedPlaylist, label: playlists.find(pl => pl.id === selectedPlaylist).name } : null}
+                  onChange={opt => setSelectedPlaylist(opt ? opt.value : '')}
+                  placeholder="Select a playlist..."
+                  isSearchable
+                  isClearable
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      background: '#232234',
+                      borderColor: '#47449c',
+                      color: '#fff',
+                      minHeight: 25,
+                      borderRadius: 8,
+                      boxShadow: state.isFocused ? '0 0 0 2px #47449c' : 'none',
+                      margin: '16px auto 8px auto',
+                      width: '100%', // Make the select wider
+                      fontSize: 18,
+                      zIndex: 10004, // Ensure control is above button
+                    }),
+                    singleValue: base => ({ ...base, color: '#fff' }),
+                    menu: base => ({ ...base, background: '#232234', color: '#fff', borderRadius: 8, zIndex: 10005, width: 500 }), // Make dropdown menu wider and above everything
+                    option: (base, state) => ({
+                      ...base,
+                      background: state.isFocused ? '#47449c' : '#232234',
+                      color: '#fff',
+                      cursor: 'pointer',
+                      fontSize: 18,
+                      padding: '10px 16px',
+                      whiteSpace: 'pre-wrap',
+                    }),
+                    placeholder: base => ({ ...base, color: '#aaa', fontSize: 18 }),
+                    dropdownIndicator: base => ({ ...base, color: '#aaa' }),
+                    indicatorSeparator: base => ({ ...base, background: '#47449c' }),
+                    input: base => ({ ...base, color: '#fff', fontSize: 18 }),
+                    menuPortal: base => ({ ...base, zIndex: 10005 }),
                   }}
-                >
-                  <option value="">Select a playlist</option>
-                  {playlists.map(pl => (
-                    <option key={pl.id} value={pl.id}>{pl.name}</option>
-                  ))}
-                </select>
-              )}
-              {/* Custom Spotify Player Controls */}
-              {playerState && playerState.item && (
-                <SpotifyPlayerControls
-                  isPlaying={playerState.is_playing}
-                  onPlay={handlePlay}
-                  onPause={handlePause}
-                  onNext={handleNext}
-                  onPrev={handlePrev}
-                  track={playerState.item}
-                  progressMs={playerState.progress_ms}
-                  durationMs={playerState.item.duration_ms}
-                  onSeek={handleSeek}
+                  menuPortalTarget={typeof window !== 'undefined' ? window.document.body : undefined}
+                  menuPosition="fixed"
                 />
-              )}
-              {/* Embed player for selected playlist (fallback) */}
-              {!playerState?.item && (
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <iframe
-                    title="Spotify Playlist"
-                    src={selectedPlaylist
-                      ? `https://open.spotify.com/embed/playlist/${selectedPlaylist}`
-                      : getSpotifyEmbed(savedUrl || DEFAULT_SPOTIFY_URL).replace('/embed/', '/embed/playlist/')}
-                    width="100%"
-                    height="380"
-                    frameBorder="0"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    style={{ borderRadius: 12, marginTop: 8, minHeight: 200 }}
-                  ></iframe>
-                </div>
               )}
             </>
           )}
         </div>
+      )}
+
+      {/* SINGLE SPOTIFY EMBED: Always rendered, styled based on panelOpen */}
+      {selectedPlaylist && (
+        <div style={{
+          position: 'fixed',
+          left: -115,
+          bottom: panelOpen ? 160 : 76,
+          zIndex: panelOpen ? 10000 : 10001,
+          width: 350,
+          maxWidth: '90vw',
+          background: 'transparent',
+          borderRadius: 16,
+          boxShadow: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          height: panelOpen ? 380 : 80,
+          transition: 'all 0.2s cubic-bezier(.4,2,.6,1)'
+        }}>
+          <iframe
+            title="Spotify Playlist"
+            src={`https://open.spotify.com/embed/playlist/${selectedPlaylist}`}
+            width="100%"
+            height={panelOpen ? 380 : 90}
+            frameBorder="0"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            style={{
+              borderRadius: 12,
+              marginTop: panelOpen ? 8 : 0,
+              minHeight: panelOpen ? 200 : 60,
+              background: 'transparent',
+              transition: 'all 0.2s cubic-bezier(.4,2,.6,1)'
+            }}
+          ></iframe>
+        </div>
+      )}
+
+      {/* Always render the player controls, but only show when a song is playing */}
+      {accessToken && playerState && playerState.item && (
+        <>
+          {/* Full player controls when panel is open */}
+          {panelOpen ? (
+            <div style={{
+              position: 'fixed', left: 32, bottom: 76, zIndex: 9998,
+              width: 340, maxWidth: '90vw',
+              background: 'transparent',
+              pointerEvents: panelOpen ? 'none' : 'auto',
+            }}>
+              <SpotifyPlayerControls
+                isPlaying={playerState.is_playing}
+                onPlay={handlePlay}
+                onPause={handlePause}
+                onNext={handleNext}
+                onPrev={handlePrev}
+                track={playerState.item}
+                progressMs={playerState.progress_ms}
+                durationMs={playerState.item.duration_ms}
+                onSeek={handleSeek}
+              />
+            </div>
+          ) : (
+            // Mini player when panel is closed
+            <div style={{
+              position: 'fixed', left: 32, bottom: 76, zIndex: 9998,
+              width: 220, height: 64, background: '#232234ee', borderRadius: 16,
+              display: 'flex', alignItems: 'center', boxShadow: '0 2px 12px #0005',
+              padding: '0 16px', gap: 12,
+            }}>
+              <img src={playerState.item.album?.images?.[0]?.url} alt="cover" style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }} />
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <div style={{ color: '#fff', fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{playerState.item.name}</div>
+                <div style={{ color: '#aaa', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{playerState.item.artists?.map(a => a.name).join(', ')}</div>
+              </div>
+              <button onClick={playerState.is_playing ? handlePause : handlePlay} style={{
+                background: 'none', border: 'none', color: '#1db954', fontSize: 22, cursor: 'pointer', marginLeft: 4
+              }}>
+                {playerState.is_playing ? '❚❚' : '▶'}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </>
   );

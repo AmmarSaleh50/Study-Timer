@@ -26,7 +26,7 @@ export default function SpotifySearchBar({ accessToken, onResultSelect }) {
   };
 
   return (
-    <div style={{ width: '100%', marginBottom: 16 }}>
+    <div style={{ width: '100%', marginBottom: 16, position: 'relative' }}>
       <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8 }}>
         <input
           type="text"
@@ -39,7 +39,20 @@ export default function SpotifySearchBar({ accessToken, onResultSelect }) {
       </form>
       {loading && <div style={{ color: '#aaa', marginTop: 8 }}>Searching...</div>}
       {results.length > 0 && (
-        <div style={{ marginTop: 8, background: '#191826', borderRadius: 8, padding: 8, maxHeight: 240, overflowY: 'auto' }}>
+        <div style={{
+          marginTop: 8,
+          background: '#191826',
+          borderRadius: 8,
+          padding: 8,
+          maxHeight: 240,
+          overflowY: 'auto',
+          width: '100%',
+          minWidth: 0,
+          position: 'absolute',
+          left: 0,
+          zIndex: 10,
+          boxShadow: '0 4px 32px #0006',
+        }}>
           {results.map(item => (
             <div
               key={item.id + item._type}
