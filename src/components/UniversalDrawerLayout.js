@@ -21,7 +21,15 @@ const UniversalDrawerLayout = ({ children }) => {
   };
 
   return (
-    <>
+    <div
+      className="universal-drawer-layout"
+      style={{
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
+      }}
+    >
       <div className="dashboard-header" style={{ position: 'relative', width: '100%' }}>
         <div className="drawer-toggle-wrapper">
           {!drawerOpen && (
@@ -97,7 +105,7 @@ const UniversalDrawerLayout = ({ children }) => {
         )}
       </AnimatePresence>
       {children}
-    </>
+    </div>
   );
 };
 

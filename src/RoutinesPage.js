@@ -6,7 +6,7 @@ import FloatingLabelInput from './components/FloatingLabelInput';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { generateTaskId } from './utils';
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 function getDefaultTask(existingTasks = []) {
   // Suggest a time based on previous tasks or current time
@@ -193,7 +193,11 @@ const RoutinesPage = () => {
     }));
     setRoutines({ ...routines, [selectedDay]: shifted });
     if (!editing) setEditTasks(shifted);
-    // Optionally, save to Firestore here if needed
+    // Save to Firestore so changes persist
+    if (userId) {
+      const routinesRef = doc(db, 'users', userId, 'routines', selectedDay);
+      setDoc(routinesRef, { tasks: shifted });
+    }
   }
 
   const handleDragEnd = result => {
@@ -258,8 +262,19 @@ const RoutinesPage = () => {
                         return (ah * 60 + am) - (bh * 60 + bm);
                       })
                       .map((task, idx, arr) => {
-                        const progress = getTaskProgress(task, idx);
-                        const currentIdx = getCurrentTaskIdx(arr);
+                        const jsDay = new Date().getDay();
+                        const todayIdx = jsDay === 0 ? 6 : jsDay - 1;
+                        const selectedIdx = DAYS.indexOf(selectedDay);
+                        let progress = 0;
+                        let currentIdx = -1;
+                        if (selectedIdx < todayIdx) {
+                          // Days before today in this week are done
+                          progress = 100;
+                        } else if (selectedIdx === todayIdx) {
+                          // Today is live
+                          progress = getTaskProgress(task, idx);
+                          currentIdx = getCurrentTaskIdx(arr);
+                        } // Days after today: untouched (progress = 0)
                         return (
                           <li key={idx} style={{ background: currentIdx === idx ? '#29294a' : undefined }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

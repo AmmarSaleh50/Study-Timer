@@ -18,6 +18,7 @@ import {
 } from "firebase/firestore";
 import { canRead, canWrite, recordRead, recordWrite } from './firestoreQuotaGuard';
 import FloatingLabelInput from './components/FloatingLabelInput';
+import FloatingMusicPlayer from './components/FloatingMusicPlayer';
 
 /* ============================================================================  
    Helper Functions  
@@ -61,7 +62,10 @@ function formatSmartDuration(seconds) {
 /* ============================================================================  
    TimerScreen Component  
 ============================================================================ */
+const SPOTIFY_EMBED_URL = "https://open.spotify.com/embed/playlist/37i9dQZF1DXc8kgYqQLMfH"; // Chill Lofi Study Beats
+
 function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume }) {
+  const [showSpotify, setShowSpotify] = useState(false);
   return (
     <div className="timer-screen card-animate">
       <h2>Currently Studying: {subject}</h2>
@@ -76,7 +80,22 @@ function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused,
         <button className="control-button stop button-pop button-ripple" onClick={stopTimer}>
           Stop
         </button>
+        {/* Spotify button removed as requested */}
       </div>
+      {showSpotify && (
+        <div style={{ marginTop: 24, width: '100%', maxWidth: 420 }}>
+          <iframe
+            title="Chill Study Playlist"
+            src={SPOTIFY_EMBED_URL}
+            width="100%"
+            height="80"
+            frameBorder="0"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            style={{ borderRadius: 12 }}
+          ></iframe>
+        </div>
+      )}
     </div>
   );
 }
@@ -739,6 +758,7 @@ function Dashboard() {
             onPause={handlePause}
             onResume={handleResume}
           />
+          <FloatingMusicPlayer />
         </div>
       </div>
     );
