@@ -19,6 +19,7 @@ import {
 import { canRead, canWrite, recordRead, recordWrite } from './firestoreQuotaGuard';
 import FloatingLabelInput from './components/FloatingLabelInput';
 import FloatingMusicPlayer from './components/FloatingMusicPlayer';
+import { useTranslation } from 'react-i18next';
 
 /* ============================================================================  
    Helper Functions  
@@ -49,14 +50,29 @@ function getWeekRange(date) {
   return { monday, sunday };
 }
 
-// Formats a duration (in seconds) smartly as seconds, minutes, or hours + minutes.
-function formatSmartDuration(seconds) {
-  if (seconds < 60) return `${seconds}s`;
+// Formats a duration (in seconds) smartly as seconds, minutes, or hours + minutes, using localization.
+function formatSmartDuration(seconds, t, i18n) {
+  const isRTL = i18n && i18n.dir && i18n.dir() === 'rtl';
+  if (seconds < 60) return `${seconds}${t ? 's' : ''}`;
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
-  if (hours > 0) return `${hours}h`;
-  return `${minutes}m`;
+  if (isRTL) {
+    if (hours > 0 && minutes > 0) return `${hours} ${t ? t('time.hour', 'h') : 'h'} ${minutes} ${t ? t('time.minute', 'm') : 'm'}`;
+    if (hours > 0) return `${hours} ${t ? t('time.hour', 'h') : 'h'}`;
+    return `${minutes} ${t ? t('time.minute', 'm') : 'm'}`;
+  } else {
+    if (hours > 0 && minutes > 0) return `${hours} ${t ? t('time.hour', 'h') : 'h'} ${minutes} ${t ? t('time.minute', 'm') : 'm'}`;
+    if (hours > 0) return `${hours} ${t ? t('time.hour', 'h') : 'h'}`;
+    return `${minutes} ${t ? t('time.minute', 'm') : 'm'}`;
+  }
+}
+
+// --- i18n helper for localized weekday short names ---
+const WEEKDAY_KEYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function getLocalizedShortWeekdays(t) {
+  // Returns [Sun, Mon, ...] using t('dashboard.Mon') etc.
+  return WEEKDAY_KEYS.map((key) => t(`dashboard.${key}`));
 }
 
 /* ============================================================================  
@@ -64,28 +80,28 @@ function formatSmartDuration(seconds) {
 ============================================================================ */
 const SPOTIFY_EMBED_URL = "https://open.spotify.com/embed/playlist/37i9dQZF1DXc8kgYqQLMfH"; // Chill Lofi Study Beats
 
-function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume }) {
+function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume, t, i18n }) {
   const [showSpotify, setShowSpotify] = useState(false);
   return (
     <div className="timer-screen card-animate">
-      <h2>Currently Studying: {subject}</h2>
-      <div className="big-timer">{formatTime(elapsedSeconds)}</div>
+      <h2>{t('dashboard.currentlyStudying')} {subject}</h2>
+      <div className="big-timer">{formatTime(elapsedSeconds, t, i18n)}</div>
       <div className="timer-controls">
         <button 
           className={`control-button ${isPaused ? 'resume' : 'pause'} button-pop button-ripple`}
           onClick={isPaused ? onResume : onPause}
         >
-          {isPaused ? 'Resume' : 'Pause'}
+          {isPaused ? t('dashboard.resume') : t('dashboard.pause')}
         </button>
         <button className="control-button stop button-pop button-ripple" onClick={stopTimer}>
-          Stop
+          {t('dashboard.stop')}
         </button>
         {/* Spotify button removed as requested */}
       </div>
       {showSpotify && (
         <div style={{ marginTop: 24, width: '100%', maxWidth: 420 }}>
           <iframe
-            title="Chill Study Playlist"
+            title={t('dashboard.chillStudyPlaylist')}
             src={SPOTIFY_EMBED_URL}
             width="100%"
             height="80"
@@ -104,7 +120,8 @@ function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused,
    WeeklyStatsCard Component  
    - Renders tab navigation, Doughnut and Stacked Bar charts based on the view mode.  
 ============================================================================ */
-function WeeklyStatsCard({ sessionsData, topics, sessions }) {
+function WeeklyStatsCard({ sessionsData, topics, sessions, t, i18n }) {
+  const { t: t2 } = useTranslation();
   // Tab view state: 'week', 'today', or 'daily'
   const [viewMode, setViewMode] = useState("week");
   const tabs = ["today", "week", "daily"];
@@ -163,17 +180,16 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
     const dayKeys = [];
     const dayLabels = [];
     const currentDate = new Date(monday);
+    const localizedShortWeekdays = getLocalizedShortWeekdays(t2); // [So, Mo, ...] or [Sun, Mon, ...]
+    let weekdayIdx = currentDate.getDay();
     while (currentDate <= sunday) {
       const isoDate = currentDate.toISOString().split("T")[0];
       dayKeys.push(isoDate);
-      dayLabels.push(
-        currentDate.toLocaleDateString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric'
-        })
-      );
+      // Use localized short weekday name, e.g. 'Mo 8 Jul'
+      const label = `${localizedShortWeekdays[weekdayIdx]} ${currentDate.getDate()}.${currentDate.getMonth()+1}`;
+      dayLabels.push(label);
       currentDate.setDate(currentDate.getDate() + 1);
+      weekdayIdx = (weekdayIdx + 1) % 7;
     }
     
     // Build datasets: one per topic with durations per day.
@@ -204,7 +220,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
             label: function(context) {
               const label = context.dataset.label || '';
               const value = context.parsed.y;
-              return `${label}: ${formatSmartDuration(value)}`;
+              return `${label}: ${formatSmartDuration(value, t2, i18n)}`;
             }
           }
         }
@@ -214,7 +230,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
         x: { stacked: true },
         y: { 
           stacked: true,
-          ticks: { callback: (value) => formatSmartDuration(value) }
+          ticks: { callback: (value) => formatSmartDuration(value, t2, i18n) }
         }
       }
     };
@@ -232,7 +248,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
                 onClick={() => setViewMode(mode)}
                 className={`tab-button ${viewMode === mode ? 'active' : ''} button-pop button-ripple`}
               >
-                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                {t(`dashboard.${mode.charAt(0).toUpperCase() + mode.slice(1)}`)}
               </button>
             ))}
             <div
@@ -260,21 +276,21 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
               </div>
               <div className="stats-details">
                 <div className="total-study-time">
-                  {formatSmartDuration(totalDuration)}
+                  {t('dashboard.total')} {formatSmartDuration(totalDuration, t2, i18n)}
                 </div>
                 <ul className="stats-topics">
                   {subjects.map((subj) => (
                     <li key={subj} className="topic-line">
                       <span className="dot" style={{ backgroundColor: topics.find((t) => t.name === subj)?.color || '#ccc' }}></span>
                       <span className="topic-name">{subj}</span>
-                      <span className="topic-time">{formatSmartDuration(displayData[subj])}</span>
+                      <span className="topic-time">{formatSmartDuration(displayData[subj], t2, i18n)}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </>
           ) : (
-            <p className="stats-no-sessions-message">No study sessions recorded for this view.</p>
+            <p className="stats-no-sessions-message">{t('dashboard.noSessionsRecorded')}</p>
           )}
         </div>
       )}
@@ -287,6 +303,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions }) {
    - Main component handling timer, sessions, topics, user actions and rendering.  
 ============================================================================ */
 function Dashboard() {
+  const { t, i18n } = useTranslation();
   // Timer and session related states.
   const [topics, setTopics] = useState([]);
   const [newTopic, setNewTopic] = useState('');
@@ -309,7 +326,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchTimer = async () => {
       if (!canRead()) {
-        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        alert(t('dashboard.dailyFirestoreReadLimitReached'));
         return;
       }
       const user = JSON.parse(localStorage.getItem("user"));
@@ -337,10 +354,12 @@ function Dashboard() {
         
         // Start interval if not paused
         if (intervalRef.current) clearInterval(intervalRef.current);
-        const id = setInterval(() => {
-          setElapsedSeconds(Math.floor((Date.now() - start) / 1000 - (timerData.totalPausedDuration || 0)));
-        }, 1000);
-        intervalRef.current = id;
+        if (!timerData.isPaused) {
+          const id = setInterval(() => {
+            setElapsedSeconds(Math.floor((Date.now() - start) / 1000 - (timerData.totalPausedDuration || 0)));
+          }, 1000);
+          intervalRef.current = id;
+        }
       }
     };
     fetchTimer();
@@ -350,7 +369,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchTopics = async () => {
       if (!canRead()) {
-        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        alert(t('dashboard.dailyFirestoreReadLimitReached'));
         return;
       }
       const user = JSON.parse(localStorage.getItem("user"));
@@ -376,7 +395,7 @@ function Dashboard() {
     // Listen for real-time updates to sessions
     const unsubscribeSessions = onSnapshot(sessionsRef, (snapshot) => {
       if (!canRead()) {
-        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        alert(t('dashboard.dailyFirestoreReadLimitReached'));
         return;
       }
       const sessionList = snapshot.docs.map((doc) => doc.data());
@@ -402,7 +421,7 @@ function Dashboard() {
     // Listen for timer changes
     const unsubscribeTimer = onSnapshot(userDocRef, (docSnap) => {
       if (!canRead()) {
-        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        alert(t('dashboard.dailyFirestoreReadLimitReached'));
         return;
       }
       if (docSnap.exists()) {
@@ -451,7 +470,7 @@ function Dashboard() {
     // Listen for topic changes
     const unsubscribeTopics = onSnapshot(userDocRef, (docSnap) => {
       if (!canRead()) {
-        alert("You've reached the daily Firestore read limit. Please try again tomorrow!");
+        alert(t('dashboard.dailyFirestoreReadLimitReached'));
         return;
       }
       if (docSnap.exists()) {
@@ -477,7 +496,7 @@ function Dashboard() {
   // Add a new topic.
   const addTopic = async () => {
     if (!canWrite()) {
-      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      alert(t('dashboard.dailyFirestoreWriteLimitReached'));
       return;
     }
     const name = newTopic.trim();
@@ -499,11 +518,11 @@ function Dashboard() {
   // Start the timer.
   const startTimer = async () => {
     if (!canWrite()) {
-      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      alert(t('dashboard.dailyFirestoreWriteLimitReached'));
       return;
     }
     if (!subject || !topics.some((t) => t.name === subject)) {
-      setErrorMessage("Please select a study topic before starting.");
+      setErrorMessage(t('dashboard.selectStudyTopicBeforeStarting'));
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
@@ -535,9 +554,7 @@ function Dashboard() {
     // Clear any existing intervals
     if (intervalRef.current) clearInterval(intervalRef.current);
     const id = setInterval(() => {
-      const now = new Date();
-      const elapsed = Math.floor((now.getTime() - actualStart.getTime()) / 1000);
-      setElapsedSeconds(elapsed);
+      setElapsedSeconds(Math.floor((Date.now() - actualStart) / 1000));
     }, 1000);
     intervalRef.current = id;
   };
@@ -545,7 +562,7 @@ function Dashboard() {
   // Stop the timer and record the session.
   const stopTimer = async () => {
     if (!canRead() || !canWrite()) {
-      alert("You've reached the daily Firestore quota. Please try again tomorrow!");
+      alert(t('dashboard.dailyFirestoreQuotaReached'));
       return;
     }
     const user = JSON.parse(localStorage.getItem("user"));
@@ -594,7 +611,7 @@ function Dashboard() {
   // Add pause/resume handlers
   const handlePause = async () => {
     if (!canWrite()) {
-      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      alert(t('dashboard.dailyFirestoreWriteLimitReached'));
       return;
     }
     const user = JSON.parse(localStorage.getItem("user"));
@@ -616,7 +633,7 @@ function Dashboard() {
 
   const handleResume = async () => {
     if (!canWrite()) {
-      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      alert(t('dashboard.dailyFirestoreWriteLimitReached'));
       return;
     }
     const user = JSON.parse(localStorage.getItem("user"));
@@ -647,7 +664,7 @@ function Dashboard() {
   // Update the color for a specific topic.
   const updateTopicColor = async (topicName, newColor) => {
     if (!canWrite()) {
-      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      alert(t('dashboard.dailyFirestoreWriteLimitReached'));
       return;
     }
     const updated = topics.map((t) =>
@@ -664,7 +681,7 @@ function Dashboard() {
   // Remove a topic.
   const removeTopic = async (topicName) => {
     if (!canWrite()) {
-      alert("You've reached the daily Firestore write limit. Please try again tomorrow!");
+      alert(t('dashboard.dailyFirestoreWriteLimitReached'));
       return;
     }
     const updated = topics.filter((t) => t.name !== topicName);
@@ -682,7 +699,7 @@ function Dashboard() {
 
   const handleResetConfirmed = async () => {
     if (!canRead() || !canWrite()) {
-      alert("You've reached the daily Firestore quota. Please try again tomorrow!");
+      alert(t('dashboard.dailyFirestoreQuotaReached'));
       return;
     }
     const user = JSON.parse(localStorage.getItem("user"));
@@ -730,7 +747,7 @@ function Dashboard() {
   // --- Prevent changing subject while timer is running ---
   const handleSelectTopic = (topicName) => {
     if (timerRunning) {
-      setErrorMessage("You can't change your study topic while a timer is running.");
+      setErrorMessage(t('dashboard.cantChangeStudyTopicWhileTimerRunning'));
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
@@ -752,11 +769,13 @@ function Dashboard() {
           <TimerScreen
             subject={subject}
             elapsedSeconds={elapsedSeconds}
-            formatTime={formatTime}
+            formatTime={(seconds) => formatTime(seconds)}
             stopTimer={stopTimer}
             isPaused={isPaused}
             onPause={handlePause}
             onResume={handleResume}
+            t={t}
+            i18n={i18n}
           />
           <FloatingMusicPlayer />
         </div>
@@ -768,14 +787,14 @@ function Dashboard() {
     <div className="dashboard-main-bg fade-slide-in">
       <div className="app-container card-animate">
         <div style={{ fontFamily: 'Arial' }}>
-          <h1 className="heading-animate">Study Timer</h1>
+          <h1 className="heading-animate">{t('dashboard.studyTimer')}</h1>
 
           {/* Add New Topic Section */}
           <div className="add-topic-inline-row" style={{ display: 'flex', alignItems: 'stretch', width: '100%', gap: 0 }}>
             <div style={{ display: 'flex', flex: 1, alignItems: 'center', minWidth: 0 }}>
               <FloatingLabelInput
                 type="text"
-                label="Topic name & Color"
+                label={t('dashboard.topicNameAndColor')}
                 value={newTopic}
                 onChange={e => setNewTopic(e.target.value)}
                 name="new-topic"
@@ -786,7 +805,7 @@ function Dashboard() {
                     value={newTopicColor}
                     onChange={e => setNewTopicColor(e.target.value)}
                     className="topic-color-picker-inline"
-                    title="Pick a color for this topic"
+                    title={t('dashboard.pickColorForTopic')}
                     style={{ border: 'none', background: 'none', width: 32, height: 32, borderRadius: 6, boxShadow: '0 1px 4px #232234', cursor: 'pointer', display: 'inline-block', verticalAlign: 'middle', padding: 0 }}
                   />
                 }
@@ -809,7 +828,7 @@ function Dashboard() {
           {/* Select Active Topic */}
           {topics.length > 0 && (
             <div style={{ marginBottom: '20px' }}>
-              <div className="pick-course-label">Pick a course to study:</div>
+              <div className="pick-course-label">{t('dashboard.pickCourseToStudy')}</div>
               <div className="topics-container">
                 {topics.map(topic => {
                   const isActive = subject === topic.name;
@@ -831,16 +850,16 @@ function Dashboard() {
                         onClick={e => e.stopPropagation()}
                         onChange={e => updateTopicColor(topic.name, e.target.value)}
                         className="tag-color-picker"
-                        title="Change color"
+                        title={t('dashboard.changeColor')}
                         disabled={timerRunning}
                       />
                       <span
                         className="tag-remove"
-                        title="Remove topic"
+                        title={t('dashboard.removeTopic')}
                         onClick={e => {
                           e.stopPropagation();
                           if (timerRunning) {
-                            setErrorMessage("You can't delete topics while a timer is running.");
+                            setErrorMessage(t('dashboard.cantDeleteTopicsWhileTimerRunning'));
                             setTimeout(() => setErrorMessage(""), 3000);
                             return;
                           }
@@ -886,7 +905,7 @@ function Dashboard() {
           {timerRunning && !showTimerScreen && (
             <div className="timer-link">
               <button className="start-button button-pop button-ripple" onClick={() => setShowTimerScreen(true)}>
-                Back to Timer
+                {t('dashboard.backToTimer')}
               </button>
             </div>
           )}
@@ -902,7 +921,7 @@ function Dashboard() {
                 opacity: topics.length === 0 || !subject ? 0.7 : 1
               }}
             >
-              Start
+              {t('dashboard.start')}
             </button>
           ) : null}
 
@@ -915,6 +934,8 @@ function Dashboard() {
               sessionsData={currentWeekSessions}
               topics={topics}
               sessions={sessions}
+              t={t}
+              i18n={i18n}
             />
           </div>
 
@@ -924,20 +945,20 @@ function Dashboard() {
           {/* Reset Data Section */}
           <div className="reset-button-container">
             <button className="reset-button button-pop button-ripple" onClick={confirmReset}>
-              Reset Stats
+              {t('dashboard.resetStats')}
             </button>
           </div>
 
           {showResetConfirm && (
             <div className="modal-overlay">
               <div className="modal">
-                <p>Are you sure you want to reset all study statistics?</p>
+                <p>{t('dashboard.confirmResetStats')}</p>
                 <div className="modal-buttons">
                   <button onClick={handleResetConfirmed} className="confirm button-pop button-ripple">
-                    Yes, reset stats
+                    {t('dashboard.yesResetStats')}
                   </button>
                   <button onClick={handleResetCancelled} className="cancel button-pop button-ripple">
-                    Cancel
+                    {t('dashboard.cancel')}
                   </button>
                 </div>
               </div>

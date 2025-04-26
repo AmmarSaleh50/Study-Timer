@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function SpotifyPlayerControls({
   isPlaying,
@@ -11,11 +12,13 @@ export default function SpotifyPlayerControls({
   durationMs,
   onSeek
 }) {
+  const { t } = useTranslation();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: '100%' }}>
       {track && (
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 16, width: '100%' }}>
-          <img src={track.album.images[0]?.url} alt="Album Art" style={{ width: 64, height: 64, borderRadius: 8, boxShadow: '0 2px 8px #0003' }} />
+          <img src={track.album.images[0]?.url} alt={t('musicPlayer.albumArt')} style={{ width: 64, height: 64, borderRadius: 8, boxShadow: '0 2px 8px #0003' }} />
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 600, fontSize: 17 }}>{track.name}</div>
             <div style={{ color: '#aaa', fontSize: 14 }}>{track.artists.map(a => a.name).join(', ')}</div>
@@ -24,13 +27,13 @@ export default function SpotifyPlayerControls({
         </div>
       )}
       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 18 }}>
-        <button onClick={onPrev} style={buttonStyle} aria-label="Previous">⏮️</button>
+        <button onClick={onPrev} style={buttonStyle} aria-label={t('common.previous')}>⏮️</button>
         {isPlaying ? (
-          <button onClick={onPause} style={buttonStyle} aria-label="Pause">⏸️</button>
+          <button onClick={onPause} style={buttonStyle} aria-label={t('common.pause')}>⏸️</button>
         ) : (
-          <button onClick={onPlay} style={buttonStyle} aria-label="Play">▶️</button>
+          <button onClick={onPlay} style={buttonStyle} aria-label={t('common.play')}>▶️</button>
         )}
-        <button onClick={onNext} style={buttonStyle} aria-label="Next">⏭️</button>
+        <button onClick={onNext} style={buttonStyle} aria-label={t('common.next')}>⏭️</button>
       </div>
       {/* Progress bar */}
       {typeof progressMs === 'number' && typeof durationMs === 'number' && (

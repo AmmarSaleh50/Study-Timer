@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client'; // 🆕 notice the /client here
+import './i18n';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 

@@ -18,6 +18,8 @@
   margin: 0 auto;
   left: 0;
   top: 0;
+  min-height: unset;
+  height: unset;
 }
 
 @media (min-width: 900px) {
@@ -29,10 +31,17 @@
 
 /* Mobile responsiveness for Routines Page */
 @media (max-width: 600px) {
+  .routines-main-bg {
+    min-height: calc(100vh - 56px); /* leave space for bottom navbar */
+    padding-bottom: 56px; /* ensure content not hidden behind navbar */
+  }
   .routines-container {
     width: 100vw;
     border-radius: 0;
     padding: 16px;
+    min-height: unset;
+    height: unset;
+    box-sizing: border-box;
   }
   .routine-day-selector {
     display: flex;

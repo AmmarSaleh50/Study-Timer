@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import SpotifyPlayerControls from './SpotifyPlayerControls';
 import SpotifySearchBar from './SpotifySearchBar';
 import Select from 'react-select';
+import { useTranslation } from 'react-i18next';
 
 // Simple music note icon SVG for the button
 const MusicNoteIcon = (
@@ -65,6 +66,7 @@ export default function FloatingMusicPlayer() {
   const [playerState, setPlayerState] = useState(null);
   const [playerInterval, setPlayerInterval] = useState(null);
   const [searchSelected, setSearchSelected] = useState(null);
+  const { t } = useTranslation();
 
   // Save Spotify refresh token to Firestore for the logged-in user
   async function saveSpotifyRefreshTokenToFirestore(refreshToken) {
@@ -311,7 +313,7 @@ export default function FloatingMusicPlayer() {
           transition: 'background 0.2s',
           padding: 8,
         }}
-        aria-label="Music Player"
+        aria-label={t('musicPlayer.musicNoteButton')}
       >
         {MusicNoteIcon}
       </button>
@@ -336,11 +338,11 @@ export default function FloatingMusicPlayer() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
               onClick={() => setShowConnect(true)}
-              aria-label="Open Spotify Connect"
+              aria-label={t('musicPlayer.spotifyLogoButton')}
             >
               <img
                 src={process.env.PUBLIC_URL + '/2024-spotify-logo-icon/Spotify_Primary_Logo_RGB_Green.png'}
-                alt="Spotify Logo"
+                alt={t('musicPlayer.spotifyLogoAlt')}
                 style={{ height: 60, width: 180, objectFit: 'contain', display: 'block' }}
                 draggable={false}
                 onDragStart={e => e.preventDefault()}
@@ -361,7 +363,7 @@ export default function FloatingMusicPlayer() {
                 window.location.href = url;
               }}
             >
-              Connect with Spotify
+              {t('musicPlayer.connectWithSpotifyButton')}
             </button>
           )}
 
@@ -369,8 +371,8 @@ export default function FloatingMusicPlayer() {
           {accessToken && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', fontSize: 15, color: '#aaa', marginBottom: -2,marginTop: 4, gap: 8 }}>
-                <img src={process.env.PUBLIC_URL + '/2024-spotify-logo-icon/Spotify_Primary_Logo_RGB_Green.png'} alt="Spotify Logo" style={{ height: 22, width: 22, objectFit: 'contain', verticalAlign: 'middle', marginRight: 4 }} draggable={false} onDragStart={e => e.preventDefault()} />
-                {user && user.display_name ? `Connected to Spotify as ${user.display_name}` : 'Connecting to Spotify...'}
+                <img src={process.env.PUBLIC_URL + '/2024-spotify-logo-icon/Spotify_Primary_Logo_RGB_Green.png'} alt={t('musicPlayer.spotifyLogoAlt')} style={{ height: 22, width: 22, objectFit: 'contain', verticalAlign: 'middle', marginRight: 4 }} draggable={false} onDragStart={e => e.preventDefault()} />
+                {user && user.display_name ? `${t('musicPlayer.connectedToSpotify')} ${user.display_name}` : t('musicPlayer.connectingToSpotify')}
               </div>
               {/* Spotify Search Bar */}
               {/**
@@ -382,7 +384,7 @@ export default function FloatingMusicPlayer() {
                   options={playlists.map(pl => ({ value: pl.id, label: pl.name }))}
                   value={playlists.find(pl => pl.id === selectedPlaylist) ? { value: selectedPlaylist, label: playlists.find(pl => pl.id === selectedPlaylist).name } : null}
                   onChange={opt => setSelectedPlaylist(opt ? opt.value : '')}
-                  placeholder="Select a playlist..."
+                  placeholder={t('musicPlayer.selectPlaylistPlaceholder')}
                   isSearchable
                   isClearable
                   styles={{
@@ -446,7 +448,7 @@ export default function FloatingMusicPlayer() {
           transition: 'all 0.2s cubic-bezier(.4,2,.6,1)'
         }}>
           <iframe
-            title="Spotify Playlist"
+            title={t('musicPlayer.spotifyPlaylistIframeTitle')}
             src={`https://open.spotify.com/embed/playlist/${selectedPlaylist}`}
             width="100%"
             height={panelOpen ? 380 : 90}
@@ -495,7 +497,7 @@ export default function FloatingMusicPlayer() {
               display: 'flex', alignItems: 'center', boxShadow: '0 2px 12px #0005',
               padding: '0 16px', gap: 12,
             }}>
-              <img src={playerState.item.album?.images?.[0]?.url} alt="cover" style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }} />
+              <img src={playerState.item.album?.images?.[0]?.url} alt={t('musicPlayer.trackCoverAlt')} style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }} />
               <div style={{ flex: 1, overflow: 'hidden' }}>
                 <div style={{ color: '#fff', fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{playerState.item.name}</div>
                 <div style={{ color: '#aaa', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{playerState.item.artists?.map(a => a.name).join(', ')}</div>
