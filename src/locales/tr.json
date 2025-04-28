@@ -32,7 +32,8 @@
   "profile": {
     "customization": "Kişiselleştirme",
     "language": "Dil",
-    "invite_friends": "Arkadaşları davet et",
+    "invite_friends": "Arkadaşlarını davet et",
+    "copied_invite_link": "Davet bağlantısı kopyalandı",
     "copy_invite_link": "Davet bağlantısını kopyala",
     "account_settings": "Hesap Ayarları",
     "reset_password": "Şifreyi sıfırla",
@@ -46,6 +47,7 @@
     "badges": "Rozetler",
     "first_routine": "İlk Rutin",
     "seven_day_streak": "7 Günlük Seri",
+    "theme": "Tema",
     "defaultName": "Öğrenci"
   },
   "home": {
@@ -221,5 +223,26 @@
     "minute": "dk",
     "hours": "saat",
     "minutes": "dakika"
+  },
+  "onboarding": {
+    "languageTitle": "Hangi dili tercih ediyorsun?",
+    "nameTitle": "Adın nedir?",
+    "welcomeTitle": "FocusForge'a Hoş Geldin!",
+    "welcomeDesc": "Tümleşik çalışma arkadaşın. Hızlıca bir tur atalım!",
+    "studySessionsTitle": "Çalışma Oturumlarını Takip Et",
+    "studySessionsDesc": "Zamanlayıcıları başlat ve odaklanmış çalışma oturumlarını kaydet. Toplam çalışma sürenin nasıl arttığını gör!",
+    "routinesTitle": "Düzenli Rutinler Oluştur",
+    "routinesDesc": "Günlük rutinler oluştur ve bir rutin serisi için tam bir haftayı tamamlamaya çalış!",
+    "aiAssistantTitle": "Yapay Zeka Asistanınla Tanış",
+    "aiAssistantDesc": "FocusForge AI ile sohbet ederek anında özel rutinler oluşturabilir ve içe aktarabilirsin. Premium aboneler sınırsız erişim elde eder!",
+    "progressTitle": "İlerlemeni Gör",
+    "progressDesc": "İstatistiklerini, serilerini ve tamamlanan rutinlerini kontrol et. Rozetlerle motive ol!",
+    "getStartedTitle": "Başlamaya hazır mısın?",
+    "getStartedDesc": "En iyi çalışma alışkanlıklarını birlikte oluşturalım!",
+    "themeTitle": "Bir Tema Seç",
+    "themeDesc": "Uygulama için tercih ettiğin renk temasını seç.",
+    "next": "İleri",
+    "skip": "Atla",
+    "getStartedBtn": "Başla"
   }
 }

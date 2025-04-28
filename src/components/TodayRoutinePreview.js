@@ -31,16 +31,16 @@ export default function TodayRoutinePreview() {
   if (loading) return <div style={{ margin: '18px 0', color: '#aaa' }}>{t('todayRoutine.loading')}</div>;
 
   return (
-    <div style={{ background: '#232234', borderRadius: 14, padding: '16px', margin: '0 0 18px 0', boxShadow: '0 2px 8px #0002' }}>
-      <div style={{ fontWeight: 600, fontSize: 17, color: '#8f8fdd', marginBottom: 8 }}>{t('todayRoutine.title')}</div>
+    <div className="homepage-card">
+      <div style={{ fontWeight: 600, fontSize: 17, color: 'var(--accent-color)', marginBottom: 8 }}>{t('todayRoutine.title')}</div>
       {tasks.length === 0 ? (
-        <div style={{ color: '#aaa', fontSize: 15 }}>{t('todayRoutine.noTasks')}</div>
+        <div style={{ color: 'var(--muted-text)', fontSize: 15 }}>{t('todayRoutine.noTasks')}</div>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {tasks.map((task, idx) => (
-            <li key={task.id || idx} style={{ padding: '7px 0', borderBottom: idx !== tasks.length-1 ? '1px solid #39395a' : 'none', color: '#eee', fontSize: 15, display: 'flex', justifyContent: 'space-between' }}>
-              <span>{task.name || <span style={{ color: '#aaa' }}>{t('common.untitledTask')}</span>}</span>
-              <span style={{ color: '#aaa', fontSize: 14 }}>{task.startTime} - {task.endTime}</span>
+            <li key={task.id || idx} style={{ padding: '7px 0', borderBottom: idx !== tasks.length-1 ? '1px solid var(--card-border)' : 'none', color: 'var(--muted-text)', fontSize: 15, display: 'flex', justifyContent: 'space-between' }}>
+              <span>{task.name || <span style={{ color: 'var(--muted-text)' }}>{t('common.untitledTask')}</span>}</span>
+              <span style={{ color: 'var(--muted-text)', fontSize: 14 }}>{task.startTime} - {task.endTime}</span>
             </li>
           ))}
         </ul>

@@ -3,6 +3,7 @@
     "customization": "Anpassung",
     "language": "Sprache",
     "invite_friends": "Freunde einladen",
+    "copied_invite_link": "Einladungslink wurde kopiert",
     "copy_invite_link": "Einladungslink kopieren",
     "account_settings": "Kontoeinstellungen",
     "reset_password": "Passwort zurücksetzen",
@@ -16,6 +17,7 @@
     "badges": "Abzeichen",
     "first_routine": "Erste Routine",
     "seven_day_streak": "7-Tage-Serie",
+    "theme": "Farbeschema",
     "defaultName": "Student"
   },
   "home": {
@@ -217,5 +219,26 @@
     "minute": "Min.",
     "hours": "Stunden",
     "minutes": "Minuten"
+  },
+  "onboarding": {
+    "languageTitle": "Welche Sprache bevorzugst du?",
+    "nameTitle": "Wie heißt du?",
+    "welcomeTitle": "Willkommen bei FocusForge!",
+    "welcomeDesc": "Dein All-in-One-Lernbegleiter. Lass uns eine kurze Tour machen!",
+    "studySessionsTitle": "Verfolge deine Lernsitzungen",
+    "studySessionsDesc": "Starte Timer und protokolliere deine konzentrierten Lernsitzungen. Sieh zu, wie deine gesamte Lernzeit wächst!",
+    "routinesTitle": "Baue konsistente Routinen auf",
+    "routinesDesc": "Erstelle tägliche Routinen und versuche, eine ganze Woche für eine Routinenserie abzuschließen!",
+    "aiAssistantTitle": "Lerne deinen KI-Assistenten kennen",
+    "aiAssistantDesc": "Mit FocusForge KI kannst du chatten, um sofort individuelle Routinen zu erstellen und zu importieren. Premium-Abonnenten erhalten unbegrenzten Zugriff!",
+    "progressTitle": "Sieh deinen Fortschritt",
+    "progressDesc": "Überprüfe deine Statistiken, Serien und abgeschlossenen Routinen. Bleibe mit Abzeichen motiviert!",
+    "getStartedTitle": "Bereit loszulegen?",
+    "getStartedDesc": "Lass uns gemeinsam deine besten Lerngewohnheiten aufbauen!",
+    "themeTitle": "Wähle ein Thema",
+    "themeDesc": "Wähle dein bevorzugtes Farbthema für die App.",
+    "next": "Weiter",
+    "skip": "Überspringen",
+    "getStartedBtn": "Loslegen"
   }
 }

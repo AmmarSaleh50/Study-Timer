@@ -34,6 +34,7 @@
     "customization": "Personnalisation",
     "language": "Langue",
     "invite_friends": "Inviter des amis",
+    "copied_invite_link": "Lien d'invitation copié",
     "copy_invite_link": "Copier le lien d'invitation",
     "account_settings": "Paramètres du compte",
     "reset_password": "Réinitialiser le mot de passe",
@@ -47,6 +48,7 @@
     "badges": "Badges",
     "first_routine": "Première routine",
     "seven_day_streak": "Série de 7 jours",
+    "theme": "Thème",
     "defaultName": "Étudiant"
   },
   "home": {
@@ -222,5 +224,26 @@
     "minute": "min",
     "hours": "heures",
     "minutes": "minutes"
+  },
+  "onboarding": {
+    "languageTitle": "Quelle langue préférez-vous ?",
+    "nameTitle": "Quel est votre nom ?",
+    "welcomeTitle": "Bienvenue sur FocusForge !",
+    "welcomeDesc": "Votre compagnon d'étude tout-en-un. Faisons un rapide tour !",
+    "studySessionsTitle": "Suivez vos sessions d'étude",
+    "studySessionsDesc": "Démarrez des minuteries et enregistrez vos sessions d'étude concentrée. Regardez votre temps d'étude total augmenter !",
+    "routinesTitle": "Construisez des routines cohérentes",
+    "routinesDesc": "Créez des routines quotidiennes et essayez de compléter une semaine entière pour une série de routines !",
+    "aiAssistantTitle": "Rencontrez votre assistant IA",
+    "aiAssistantDesc": "Avec FocusForge AI, vous pouvez discuter pour générer et importer des routines personnalisées instantanément. Les abonnés premium bénéficient d'un accès illimité !",
+    "progressTitle": "Voyez vos progrès",
+    "progressDesc": "Consultez vos statistiques, séries et routines terminées. Restez motivé avec des badges !",
+    "getStartedTitle": "Prêt à commencer ?",
+    "getStartedDesc": "Construisons ensemble vos meilleures habitudes d'étude !",
+    "themeTitle": "Choisissez un thème",
+    "themeDesc": "Choisissez votre thème de couleur préféré pour l'application.",
+    "next": "Suivant",
+    "skip": "Passer",
+    "getStartedBtn": "Commencer"
   }
 }

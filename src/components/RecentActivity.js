@@ -37,20 +37,20 @@ export default function RecentActivity() {
     return `${mins} ${t('time.minute', 'min')}`;
   }
 
-  if (loading) return <div style={{ margin: '18px 0', color: '#aaa' }}>{t('recentActivity.loading')}</div>;
+  if (loading) return <div className="homepage-card" style={{ margin: '18px 0', color: 'var(--muted-text)' }}>{t('recentActivity.loading')}</div>;
 
   return (
-    <div style={{ background: '#232234', borderRadius: 14, padding: '16px', margin: '0 0 18px 0', boxShadow: '0 2px 8px #0002' }}>
-      <div style={{ fontWeight: 600, fontSize: 17, color: '#8f8fdd', marginBottom: 8 }}>{t('recentActivity.title')}</div>
+    <div className="homepage-card">
+      <div style={{ fontWeight: 600, fontSize: 17, color: 'var(--accent-color)', marginBottom: 8 }}>{t('recentActivity.title')}</div>
       {sessions.length === 0 ? (
-        <div style={{ color: '#aaa', fontSize: 15 }}>{t('recentActivity.noSessions')}</div>
+        <div style={{ color: 'var(--muted-text)', fontSize: 15 }}>{t('recentActivity.noSessions')}</div>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {sessions.map((s, idx) => (
-            <li key={s.id || idx} style={{ padding: '7px 0', borderBottom: idx !== sessions.length-1 ? '1px solid #39395a' : 'none', color: '#eee', fontSize: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>{s.subject || <span style={{ color: '#aaa' }}>{t('recentActivity.unknownSubject')}</span>}</span>
-              <span style={{ color: '#aaa', fontSize: 14 }}>{s.durationSeconds ? formatDuration(Math.round(s.durationSeconds/60), t) : ''}</span>
-              <span style={{ color: '#aaa', fontSize: 13 }}>{s.endTime ? new Date(s.endTime).toLocaleDateString() : ''}</span>
+            <li key={s.id || idx} style={{ padding: '7px 0', borderBottom: idx !== sessions.length-1 ? '1px solid var(--card-border)' : 'none', color: 'var(--muted-text)', fontSize: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>{s.subject || <span style={{ color: 'var(--muted-text)' }}>{t('recentActivity.unknownSubject')}</span>}</span>
+              <span style={{ color: 'var(--muted-text)', fontSize: 14 }}>{s.durationSeconds ? formatDuration(Math.round(s.durationSeconds/60), t) : ''}</span>
+              <span style={{ color: 'var(--muted-text)', fontSize: 13 }}>{s.endTime ? new Date(s.endTime).toLocaleDateString() : ''}</span>
             </li>
           ))}
         </ul>

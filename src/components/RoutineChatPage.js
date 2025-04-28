@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import './RoutineChatPage.modern.css';
+import '../styles/RoutineChatPage.css';
 
 const AI_AVATAR = <span className="routinechat-avatar" title="AI">🤖</span>;
 const USER_AVATAR = <span className="routinechat-avatar" title="You">🧑</span>;
@@ -94,7 +94,7 @@ const RoutineChatPage = ({ onImportRoutine }) => {
   const [input, setInput] = useState('');
   const [pendingRoutine, setPendingRoutine] = useState(null);
   const [importPrompt, setImportPrompt] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [streamingText, setStreamingText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);

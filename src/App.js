@@ -1,17 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
-import Login from "./Login";
-import Register from "./Register";
-import Dashboard from "./Dashboard";
-import RoutinesPage from "./RoutinesPage";
-import ForgotPassword from "./ForgotPassword";
-import HomePage from "./HomePage";
-import RoutineChatPage from "./RoutineChatPage";
-import ProfilePage from "./ProfilePage";
-import './animations.css';
+import Login from "./components/Login";
+import Register from "./components/Register";
+import Timer from "./components/Timer";
+import RoutinesPage from "./components/RoutinesPage";
+import ForgotPassword from "./components/ForgotPassword";
+import HomePage from "./components/HomePage";
+import RoutineChatPage from "./components/RoutineChatPage";
+import ProfilePage from "./components/ProfilePage";
+import './styles/animations.css';
+import './styles/App.css';
+import './styles/HomePage.css';
+import './styles/Timer.css';
+import './styles/RoutinesPage.css';
+import './styles/RoutineChatPage.css';
+import './styles/ProfilePage.css';
+import './styles/RoutineRunner.css';
+import './styles/Onboarding.css';
+import './styles/ProfilePage.css';
 import { db } from "./firebase";
 import { setDoc, doc } from "firebase/firestore";
 import BottomNavBar from './components/BottomNavBar';
+import Onboarding from './components/Onboarding';
 import { useTranslation } from 'react-i18next';
 
 function AppInner() {
@@ -20,6 +30,7 @@ function AppInner() {
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem("user"));
   const isAuth = !!user;
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('onboardingComplete'));
 
   useEffect(() => {
     const storedVersion = localStorage.getItem("app-version");
@@ -37,6 +48,21 @@ function AppInner() {
     return () => window.removeEventListener('swUpdated', handler);
   }, []);
 
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      const userId = user.uid;      const storedRoutines = localStorage.getItem('routines');
+      if (storedRoutines) {
+        const routines = JSON.parse(storedRoutines);
+        const newRoutines = {};
+        for (const day in routines) {
+          newRoutines[day] = routines[day];
+        }
+        localStorage.setItem('routines', JSON.stringify(newRoutines));
+      }
+    }
+  }, []);
+
   const updateApp = () => {
     if (window.swRegistration && window.swRegistration.waiting) {
       window.swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
@@ -44,55 +70,6 @@ function AppInner() {
     window.location.reload();
   };
 
-  // Wait until i18n is initialized with the correct language
-  if (!i18n.isInitialized) {
-    return <div />; // Or a loading spinner
-  }
-
-  // Redirect all non-auth users to /login unless already on /login or /register or /forgot-password
-  if (!isAuth && !["/login", "/register", "/forgot-password"].includes(location.pathname)) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Prevent going back to timer/home/routines if not logged in
-  if (!isAuth && ["/", "/home", "/timer", "/routines"].includes(location.pathname)) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return (
-    <div>
-      {showUpdate && (
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
-          background: '#232234', color: '#fff', padding: '16px', textAlign: 'center', boxShadow: '0 -2px 12px #0007',
-        }}>
-          <span>{t('common.updateAvailable')}</span>
-          <button style={{ marginLeft: 18 }} onClick={updateApp}>{t('common.updateNow')}</button>
-        </div>
-      )}
-      <Routes location={location}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/" element={isAuth ? <HomePage /> : <Navigate to="/login" replace />} />
-        <Route path="/home" element={isAuth ? <HomePage /> : <Navigate to="/login" replace />} />
-        <Route path="/timer" element={isAuth ? <Dashboard /> : <Navigate to="/login" replace />} />
-        <Route path="/routines" element={isAuth ? <RoutinesPage /> : <Navigate to="/login" replace />} />
-        <Route path="/routine-chat" element={isAuth ? <RoutineChatWithImport /> : <Navigate to="/login" replace />} />
-        <Route path="/profile" element={isAuth ? <ProfilePage /> : <Navigate to="/login" replace />} />
-      </Routes>
-      {/* Show BottomNavBar only for authenticated users and not on auth pages */}
-      {isAuth && !["/login", "/register", "/forgot-password"].includes(location.pathname) && (
-        <BottomNavBar />
-      )}
-    </div>
-  );
-}
-
-// Helper wrapper to wire up handleImportRoutine from RoutinesPage to RoutineChatPage
-function RoutineChatWithImport() {
-  const { t } = useTranslation();
-  // Use state to store routines and handler
   const [routines, setRoutines] = React.useState({});
   const [userId, setUserId] = React.useState(null);
 
@@ -161,7 +138,76 @@ function RoutineChatWithImport() {
     console.log(`${t('common.routineImportComplete')}:`, newRoutines);
   };
 
-  return <RoutineChatPage onImportRoutine={handleImportRoutine} />;
+  // Theme toggle logic
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'default';
+  });
+
+  useEffect(() => {
+    if (theme === 'golden') {
+      document.body.classList.add('golden-theme');
+      localStorage.setItem('theme', 'golden');
+    } else {
+      document.body.classList.remove('golden-theme');
+      localStorage.setItem('theme', 'default');
+    }
+  }, [theme]);
+
+  const handleThemeToggle = () => {
+    setTheme((prev) => (prev === 'golden' ? 'default' : 'golden'));
+  };
+
+  if (isAuth && showOnboarding) {
+    return <Onboarding onFinish={() => {
+      setShowOnboarding(false);
+      localStorage.setItem('onboardingComplete', 'true');
+    }} />;
+  }
+
+  // Wait until i18n is initialized with the correct language
+  if (!i18n.isInitialized) {
+    return <div />; // Or a loading spinner
+  }
+
+  // Redirect all non-auth users to /login unless already on /login or /register or /forgot-password
+  if (!isAuth && !["/login", "/register", "/forgot-password"].includes(location.pathname)) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Prevent going back to timer/home/routines if not logged in
+  if (!isAuth && ["/", "/home", "/timer", "/routines"].includes(location.pathname)) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <div>
+      {/* Removed Theme Toggle Button from Top Right */}
+      {showUpdate && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: '#232234', color: '#fff', padding: '16px', textAlign: 'center', boxShadow: '0 -2px 12px #0007',
+        }}>
+          <span>{t('common.updateAvailable')}</span>
+          <button style={{ marginLeft: 18 }} onClick={updateApp}>{t('common.updateNow')}</button>
+        </div>
+      )}
+      <Routes location={location}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/" element={isAuth ? <HomePage /> : <Navigate to="/login" replace />} />
+        <Route path="/home" element={isAuth ? <HomePage /> : <Navigate to="/login" replace />} />
+        <Route path="/timer" element={isAuth ? <Timer /> : <Navigate to="/login" replace />} />
+        <Route path="/routines" element={isAuth ? <RoutinesPage /> : <Navigate to="/login" replace />} />
+        <Route path="/routine-chat" element={isAuth ? <RoutineChatPage onImportRoutine={handleImportRoutine} /> : <Navigate to="/login" replace />} />
+        <Route path="/profile" element={isAuth ? <ProfilePage /> : <Navigate to="/login" replace />} />
+      </Routes>
+      {/* Show BottomNavBar only for authenticated users and not on auth pages */}
+      {isAuth && !["/login", "/register", "/forgot-password"].includes(location.pathname) && (
+        <BottomNavBar />
+      )}
+    </div>
+  );
 }
 
 export default function App() {

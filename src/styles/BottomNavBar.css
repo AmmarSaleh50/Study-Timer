@@ -1,0 +1,82 @@
+/* Navbar Styles - global reusable */
+
+.navbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 62px;
+  background: var(--card-bg);
+  border-top: 2px solid var(--card-border);
+  box-shadow: 0 -2px 16px #0003;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 100;
+}
+
+.navbar__button {
+  flex: 1 1 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--muted-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  height: 100%;
+  transition: color 0.18s;
+  position: relative;
+}
+
+.navbar__button.active {
+  color: var(--accent-color);
+}
+
+.navbar__button:active {
+  background: color-mix(in srgb, var(--accent-color) 12%, transparent);
+}
+
+.navbar__indicator {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  background: var(--accent-color);
+  border-radius: 2px 2px 0 0;
+  transition: transform 0.18s, width 0.18s;
+  z-index: 2;
+}
+
+.navbar__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.navbar__label {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin-top: 1px;
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    height: 54px;
+    padding: 0 2vw;
+    padding-bottom: 8%;
+  }
+  .navbar__button {
+    font-size: 11.5px;
+  }
+  .navbar__icon {
+    margin-bottom: 0;
+  }
+}

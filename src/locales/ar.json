@@ -32,7 +32,8 @@
   "profile": {
     "customization": "تخصيص",
     "language": "اللغة",
-    "invite_friends": "دعوة الأصدقاء",
+    "invite_friends": "ادعُ أصدقاءك",
+    "copied_invite_link": "تم نسخ رابط الدعوة",
     "copy_invite_link": "نسخ رابط الدعوة",
     "account_settings": "إعدادات الحساب",
     "reset_password": "إعادة تعيين كلمة المرور",
@@ -46,6 +47,7 @@
     "badges": "شارات",
     "first_routine": "أول روتين",
     "seven_day_streak": "سلسلة 7 أيام",
+    "theme": "السمة",
     "defaultName": "طالب"
   },
   "home": {
@@ -221,5 +223,26 @@
     "minute": "د",
     "hours": "ساعات",
     "minutes": "دقائق"
+  },
+  "onboarding": {
+    "languageTitle": "ما هي اللغة التي تفضلها؟",
+    "nameTitle": "ما اسمك؟",
+    "welcomeTitle": "مرحبًا بك في FocusForge!",
+    "welcomeDesc": "رفيقك الشامل للدراسة. لنأخذ جولة سريعة!",
+    "studySessionsTitle": "تتبع جلسات دراستك",
+    "studySessionsDesc": "ابدأ المؤقتات وسجل جلسات دراستك المركزة. شاهد إجمالي وقت دراستك ينمو!",
+    "routinesTitle": "ابنِ روتينات منتظمة",
+    "routinesDesc": "أنشئ روتينات يومية وحاول إكمال أسبوع كامل لسلسلة روتين!",
+    "aiAssistantTitle": "تعرف على مساعد الذكاء الاصطناعي الخاص بك",
+    "aiAssistantDesc": "مع FocusForge AI، يمكنك الدردشة لإنشاء واستيراد روتينات مخصصة على الفور. المشتركون المميزون يحصلون على وصول غير محدود!",
+    "progressTitle": "شاهد تقدمك",
+    "progressDesc": "تحقق من إحصائياتك، وسلسلاتك، والروتينات المكتملة. حافظ على حماسك مع الشارات!",
+    "getStartedTitle": "جاهز للبدء؟",
+    "getStartedDesc": "لنبدأ ببناء أفضل عادات دراستك معًا!",
+    "themeTitle": "اختر سمة",
+    "themeDesc": "اختر نظام الألوان المفضل للتطبيق.",
+    "next": "التالي",
+    "skip": "تخطي",
+    "getStartedBtn": "ابدأ الآن"
   }
 }

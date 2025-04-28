@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
-import './App.css';
-import { db } from "./firebase";
+import '../styles/RoutinesPage.css';
+import '../styles/Timer.css';
+
+import { db } from "../firebase";
 import {
   doc,
   getDoc,
@@ -16,9 +18,9 @@ import {
   serverTimestamp,
   onSnapshot
 } from "firebase/firestore";
-import { canRead, canWrite, recordRead, recordWrite } from './firestoreQuotaGuard';
-import FloatingLabelInput from './components/FloatingLabelInput';
-import FloatingMusicPlayer from './components/FloatingMusicPlayer';
+import { canRead, canWrite, recordRead, recordWrite } from '../firestoreQuotaGuard';
+import FloatingLabelInput from './FloatingLabelInput';
+import FloatingMusicPlayer from './FloatingMusicPlayer';
 import { useTranslation } from 'react-i18next';
 
 /* ============================================================================  
@@ -81,7 +83,7 @@ function getLocalizedShortWeekdays(t) {
 const SPOTIFY_EMBED_URL = "https://open.spotify.com/embed/playlist/37i9dQZF1DXc8kgYqQLMfH"; // Chill Lofi Study Beats
 
 function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume, t, i18n }) {
-  const [showSpotify, setShowSpotify] = useState(false);
+  const [showSpotify] = useState(false);
   return (
     <div className="timer-screen card-animate">
       <h2>{t('dashboard.currentlyStudying')} {subject}</h2>
@@ -281,7 +283,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions, t, i18n }) {
                 <ul className="stats-topics">
                   {subjects.map((subj) => (
                     <li key={subj} className="topic-line">
-                      <span className="dot" style={{ backgroundColor: topics.find((t) => t.name === subj)?.color || '#ccc' }}></span>
+                      <span className="dot" style={{ backgroundColor: topics.find((t) => t.name === subj)?.color || 'var(--accent-color)' }}></span>
                       <span className="topic-name">{subj}</span>
                       <span className="topic-time">{formatSmartDuration(displayData[subj], t2, i18n)}</span>
                     </li>
@@ -299,15 +301,15 @@ function WeeklyStatsCard({ sessionsData, topics, sessions, t, i18n }) {
 }
 
 /* ============================================================================  
-   Dashboard Component  
+   Timer Component  
    - Main component handling timer, sessions, topics, user actions and rendering.  
 ============================================================================ */
-function Dashboard() {
+function Timer() {
   const { t, i18n } = useTranslation();
   // Timer and session related states.
   const [topics, setTopics] = useState([]);
   const [newTopic, setNewTopic] = useState('');
-  const [newTopicColor, setNewTopicColor] = useState('#47449c');
+  const [newTopicColor, setNewTopicColor] = useState('var(--accent-color)');
   const [subject, setSubject] = useState('');
   const [timerRunning, setTimerRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -321,6 +323,51 @@ function Dashboard() {
   const [totalPausedDuration, setTotalPausedDuration] = useState(0);
   const [lastPausedAt, setLastPausedAt] = useState(null);
   const [startTime, setStartTime] = useState(null);
+
+  // --- Helper: Calculate streak from session list (array of {endTime}) ---
+  function calculateStreak(sessions) {
+    if (!Array.isArray(sessions) || sessions.length === 0) return 0;
+    // Use local date (YYYY-MM-DD) instead of UTC to avoid timezone issues
+    const toLocalDate = (iso) => {
+      if (!iso) return null;
+      const d = new Date(iso);
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    };
+    const days = Array.from(new Set(sessions.map(s => toLocalDate(s.endTime)).filter(Boolean))).sort((a, b) => b.localeCompare(a)); // Descending
+    // Debug: Log for troubleshooting
+    if (typeof window !== 'undefined') {
+      const today = toLocalDate(new Date().toISOString());
+      console.log('[DEBUG] Session days:', days, 'Today:', today);
+    }
+    if (days.length === 0) return 0;
+    let streak = 1;
+    let prev = days[0];
+    for (let i = 1; i < days.length; ++i) {
+      const prevDate = new Date(prev);
+      const curDate = new Date(days[i]);
+      const diff = (prevDate - curDate) / (1000 * 60 * 60 * 24);
+      if (diff === 1) {
+        streak++;
+        prev = days[i];
+      } else if (diff > 1) {
+        break;
+      }
+    }
+    // Check if today is included in the streak; if not, streak is 0
+    const todayStr = toLocalDate(new Date().toISOString());
+    if (days[0] !== todayStr) return 0;
+    return streak;
+  }
+
+  // --- Update streak in localStorage after sessions change ---
+  useEffect(() => {
+    if (!sessions || sessions.length === 0) {
+      localStorage.setItem('studyStreak', '0');
+      return;
+    }
+    const streak = calculateStreak(sessions);
+    localStorage.setItem('studyStreak', String(streak));
+  }, [sessions, t]);
 
   // Resume active timer if exists.
   useEffect(() => {
@@ -363,7 +410,7 @@ function Dashboard() {
       }
     };
     fetchTimer();
-  }, []);
+  }, [t]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   // Fetch user's topics.
   useEffect(() => {
@@ -384,7 +431,7 @@ function Dashboard() {
       }
     };
     fetchTopics();
-  }, []);
+  }, [t]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   // --- Real-Time Sessions Sync Across Devices ---
   useEffect(() => {
@@ -405,7 +452,7 @@ function Dashboard() {
     return () => {
       unsubscribeSessions();
     };
-  }, []);
+  }, [t]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   // --- Real-Time Timer State Sync Across Devices ---
   useEffect(() => {
@@ -489,7 +536,7 @@ function Dashboard() {
     };
     // Only run once on mount
     // eslint-disable-next-line
-  }, []);
+  }, [t]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   /* --------------------- User Action Handlers ---------------------- */
 
@@ -512,7 +559,7 @@ function Dashboard() {
     await setDoc(userDocRef, { topics: updated }, { merge: true });
     recordWrite();
     setNewTopic("");
-    setNewTopicColor("#47449c");
+    setNewTopicColor("var(--accent-color)");
   };
 
   // Start the timer.
@@ -787,7 +834,7 @@ function Dashboard() {
     <div className="dashboard-main-bg fade-slide-in">
       <div className="app-container card-animate">
         <div style={{ fontFamily: 'Arial' }}>
-          <h1 className="heading-animate">{t('dashboard.studyTimer')}</h1>
+          <h1 className="routines-title heading-animate">{t('dashboard.studyTimer')}</h1>
 
           {/* Add New Topic Section */}
           <div className="add-topic-inline-row" style={{ display: 'flex', alignItems: 'stretch', width: '100%', gap: 0 }}>
@@ -823,7 +870,7 @@ function Dashboard() {
           </div>
 
           {/* Separator after Add button */}
-          <hr className="dashboard-hr-separator" />
+          <hr className="separator" />
 
           {/* Select Active Topic */}
           {topics.length > 0 && (
@@ -839,7 +886,9 @@ function Dashboard() {
                       style={{
                         borderColor: topic.color,
                         backgroundColor: isActive ? topic.color : 'transparent',
-                        color: isActive ? '#fff' : 'inherit'
+                        color: isActive ? '#fff' : topic.color, // Use topic color for text if not active
+                        fontWeight: 600,
+                        letterSpacing: '0.01em',
                       }}
                       onClick={() => handleSelectTopic(topic.name)}
                     >
@@ -911,22 +960,17 @@ function Dashboard() {
           )}
           {!timerRunning ? (
             <button
-              className="start-button button-pop button-ripple"
+              className="save-btn"
               onClick={startTimer}
               disabled={topics.length === 0 || !subject}
-              style={{
-                backgroundColor: topics.length === 0 || !subject ? '#cfcfcf' : '',
-                color: topics.length === 0 || !subject ? '#888' : '',
-                cursor: topics.length === 0 || !subject ? 'not-allowed' : 'pointer',
-                opacity: topics.length === 0 || !subject ? 0.7 : 1
-              }}
+              style={{width: '100%', height: '40px',padding: '0 18px', borderRadius: 8}}
             >
               {t('dashboard.start')}
             </button>
           ) : null}
 
           {/* Separator between Start button and Stats card */}
-          <hr className="dashboard-hr-separator" />
+          <hr className="separator" />
 
           {/* Weekly Stats Card */}
           <div style={{ marginTop: '20px' }}>
@@ -940,24 +984,24 @@ function Dashboard() {
           </div>
 
           {/* Separator for Dashboard section */}
-          <div className="dashboard-separator"></div>
+          <div className="separator"></div>
 
           {/* Reset Data Section */}
           <div className="reset-button-container">
-            <button className="reset-button button-pop button-ripple" onClick={confirmReset}>
+          <button className="cancel-btn button-pop button-ripple" style={{ width: '100%', maxWidth: 280}} onClick={confirmReset}>
               {t('dashboard.resetStats')}
             </button>
           </div>
 
           {showResetConfirm && (
             <div className="modal-overlay">
-              <div className="modal">
+              <div className="modal" style={{ padding: '20px' }}>
                 <p>{t('dashboard.confirmResetStats')}</p>
                 <div className="modal-buttons">
                   <button onClick={handleResetConfirmed} className="confirm button-pop button-ripple">
                     {t('dashboard.yesResetStats')}
                   </button>
-                  <button onClick={handleResetCancelled} className="cancel button-pop button-ripple">
+                  <button onClick={handleResetCancelled} className="cancel-btn button-pop button-ripple" style={{  background: "var(--card-bg)", color: "var(--accent-color)", minWidth: 20, height: 40, fontSize: 16, padding: "0 18px", borderRadius: 8, boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", marginLeft: -5, border: "1.5px solid var(--accent-color)" }}>
                     {t('dashboard.cancel')}
                   </button>
                 </div>
@@ -970,4 +1014,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default Timer;

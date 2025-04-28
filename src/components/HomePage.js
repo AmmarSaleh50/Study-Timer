@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import './App.css';
-import TodayRoutinePreview from './components/TodayRoutinePreview';
-import RecentActivity from './components/RecentActivity';
+import '../styles/HomePage.css';
+import TodayRoutinePreview from './TodayRoutinePreview';
+import RecentActivity from './RecentActivity';
 
 export default function HomePage() {
   const { t } = useTranslation();
@@ -12,6 +12,8 @@ export default function HomePage() {
   const user = JSON.parse(localStorage.getItem('user')) || {};
   const userName = user.displayName || user.name || t('home.student');
   const userInitial = userName[0] || 'S';
+  // Avatar state for live updates
+  const [avatar, setAvatar] = React.useState(user.avatarUrl || null);
   // Simple motivational quotes array
   const quotes = [
     t('home.quote1'),
@@ -23,7 +25,24 @@ export default function HomePage() {
   const quote = quotes[Math.floor(Math.random() * quotes.length)];
 
   // Optionally, show a study streak from localStorage
-  const streak = localStorage.getItem('studyStreak') || 0;
+  const streak = Number(localStorage.getItem('studyStreak')) || 0;
+
+  // Listen for avatar changes via localStorage events
+  React.useEffect(() => {
+    function handleStorageChange(e) {
+      if (e.key === 'user') {
+        const updatedUser = JSON.parse(e.newValue);
+        setAvatar(updatedUser?.avatarUrl || null);
+      }
+    }
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Helper for streak label
+  function streakLabel(count) {
+    return count === 1 ? t('home.streakDay', { count }) : t('home.streakDays', { count });
+  }
 
   return (
     <div className="dashboard-main-bg fade-slide-in" style={{ paddingBottom: 72 }}>
@@ -32,30 +51,30 @@ export default function HomePage() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 18, marginTop: 6 }}>
           <div
             style={{
-              background: 'linear-gradient(135deg,#675fc0,#47449c)',
+              background: avatar ? `url(${avatar}) center/cover` : 'var(--accent-color)',
               width: 60, height: 60, borderRadius: '50%',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: 28, color: '#fff', boxShadow: '0 2px 8px #0003',
+              fontWeight: 700, fontSize: 28, color: 'var(--profile-pfp-text)', boxShadow: '0 2px 8px #0003',
               letterSpacing: 1,
               cursor: 'pointer',
-              border: '2px solid #675fc0',
+              border: '2px solid var(--text-color)',
               transition: 'box-shadow 0.2s',
               marginBottom: 5
             }}
             title={t('home.myAccount')}
             onClick={() => navigate('/profile')}
           >
-            {userInitial}
+            {!avatar && userInitial}
           </div>
-          <h1 className="heading-animate" style={{ margin: 0, fontSize: 30, fontWeight: 700, color: '#fff', letterSpacing: '-1px', textAlign: 'center', lineHeight: 1.2 }}>
+          <h1 className="heading-animate" style={{ margin: 0, fontSize: 30, fontWeight: 700, color: 'var(--text-color)', letterSpacing: '-1px', textAlign: 'center', lineHeight: 1.2 }}>
             {t('home.greeting', { name: userName })}
           </h1>
         </div>
         {/* Dashboard Overview */}
-        <div style={{ background: '#232234', borderRadius: 14, padding: '18px 18px 10px 18px', margin: '0 0 22px 0', boxShadow: '0 2px 8px #0002', textAlign: 'center' }}>
-          <div style={{ fontSize: 15, color: '#aaa', marginBottom: 4 }}>{t('home.currentStudyStreak')}</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{t('home.streak', { count: streak })} 🔥</div>
-          <div style={{ fontSize: 15, color: '#8f8fdd', fontStyle: 'italic', marginBottom: 8 }}>
+        <div className="homepage-card">
+          <div style={{ fontSize: 15, color: 'var(--muted-text)', marginBottom: 4 }}>{t('home.currentStudyStreak')}</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-color)', marginBottom: 10 }}>{streakLabel(streak)} 🔥</div>
+          <div style={{ fontSize: 15, color: 'var(--accent-color)', fontStyle: 'italic', marginBottom: 8 }}>
             “{quote}”
           </div>
         </div>

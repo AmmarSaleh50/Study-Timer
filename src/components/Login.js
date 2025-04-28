@@ -1,12 +1,12 @@
 // Login.js
 import React, { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "./firebase";
+import { auth, googleProvider } from "../firebase";
 import { useNavigate, Link } from "react-router-dom";
-import FloatingLabelInput from './components/FloatingLabelInput';
+import FloatingLabelInput from './FloatingLabelInput';
 import { useTranslation } from 'react-i18next';
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "./firebase";
+import { db } from "../firebase";
 
 export default function Login() {
   // ---------- State Variables ----------
@@ -23,19 +23,23 @@ export default function Login() {
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const user = userCred.user;
-      // Store user details in localStorage
-      localStorage.setItem("user", JSON.stringify({ uid: user.uid, email: user.email }));
 
-      // --- Fetch language from Firestore and apply ---
+      // Store user details in localStorage
+      // Fetch full profile from Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists() && userDoc.data().language) {
-        const lang = userDoc.data().language;
-        localStorage.setItem("language", lang);
-        // Change app language immediately
-        import('i18next').then(i18nModule => {
-          i18nModule.default.changeLanguage(lang);
-        });
+      let profile = { uid: user.uid, email: user.email };
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (data.displayName) profile.displayName = data.displayName;
+        if (data.avatarUrl) profile.avatarUrl = data.avatarUrl;
+        if (data.language) {
+          localStorage.setItem("language", data.language);
+          import('i18next').then(i18nModule => {
+            i18nModule.default.changeLanguage(data.language);
+          });
+        }
       }
+      localStorage.setItem("user", JSON.stringify(profile));
 
       navigate("/");
     } catch (err) {
@@ -48,16 +52,24 @@ export default function Login() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      localStorage.setItem("user", JSON.stringify({ uid: user.uid, email: user.email }));
-      // --- Fetch language from Firestore and apply ---
+
+      // Store user details in localStorage
+      // Fetch full profile from Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists() && userDoc.data().language) {
-        const lang = userDoc.data().language;
-        localStorage.setItem("language", lang);
-        import('i18next').then(i18nModule => {
-          i18nModule.default.changeLanguage(lang);
-        });
+      let profile = { uid: user.uid, email: user.email };
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (data.displayName) profile.displayName = data.displayName;
+        if (data.avatarUrl) profile.avatarUrl = data.avatarUrl;
+        if (data.language) {
+          localStorage.setItem("language", data.language);
+          import('i18next').then(i18nModule => {
+            i18nModule.default.changeLanguage(data.language);
+          });
+        }
       }
+      localStorage.setItem("user", JSON.stringify(profile));
+
       navigate("/");
     } catch (err) {
       setError(t('login.googleSignInFailed'));
@@ -67,7 +79,7 @@ export default function Login() {
   // ---------- Render Login Form ----------
   return (
     <div className="home-main-bg fade-slide-in" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="login-container card-animate" style={{ maxWidth: "400px", textAlign: "center", width: '100%' }}>
+      <div className="login-container card-animate" style={{ maxWidth: "400px", width: "100%", textAlign: "center", padding: "20px" }}>
         <h1 style={{ marginBottom: "30px" }}>{t('login.title')}</h1>
         <form onSubmit={loginUser} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <FloatingLabelInput
@@ -92,25 +104,25 @@ export default function Login() {
             }
             onIconClick={() => setShowPassword(v => !v)}
           />
-          <button type="submit" className="button-pop button-ripple" style={{ width: "100%", background: "#47449c", color: "#fff", fontWeight: 600, border: "none", borderRadius: 8, padding: "12px 0", fontSize: "1.1em" }}>
+          <button type="submit" className="button-pop button-ripple" style={{ width: "100%", background: "var(--accent-color)", color: "var(--button-text)", fontWeight: 600, border: "none", borderRadius: 8, padding: "12px 0", fontSize: "1.1em" }}>
             {t('login.loginButton')}
           </button>
-          <button type="button" onClick={handleGoogleSignIn} className="button-pop button-ripple" style={{ width: "100%", background: "#fff", color: "#232234", fontWeight: 600, border: "1.5px solid #675fc0", borderRadius: 8, padding: "12px 0", fontSize: "1.1em", marginBottom: 8, marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button type="button" onClick={handleGoogleSignIn} className="button-pop button-ripple" style={{ width: "100%", background: "#fff", color: "#232234", fontWeight: 600, border: "1.5px solid var(--accent-color)", borderRadius: 8, padding: "12px 0", fontSize: "1.1em", marginBottom: 8, marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 22, height: 22, marginRight: 8 }} />
             <span>{t('login.googleSignInButton')}</span>
           </button>
         </form>
 
-        {error && <p style={{ color: "#ff6b6b", marginTop: "12px" }}>{error}</p>}
+        {error && <p style={{ color: "var(--danger-color)", marginTop: "12px" }}>{error}</p>}
 
         <p style={{ marginTop: "20px" }}>
-          {t('login.dontHaveAccount')}{" "}
-          <Link to="/register" style={{ color: "#675fc0", fontWeight: "bold" }}>
+          {t('login.dontHaveAccount')} {" "}
+          <Link to="/register" style={{ color: "var(--accent-color)", fontWeight: "bold" }}>
             {t('login.register')}
           </Link>
         </p>
         <p style={{ marginTop: "10px" }}>
-          <Link to="/forgot-password" style={{ color: "#aaa", fontSize: "14px", textDecoration: 'underline' }}>
+          <Link to="/forgot-password" style={{ color: "var(--muted-text)", fontSize: "14px", textDecoration: 'underline' }}>
             {t('login.forgotPassword')}
           </Link>
         </p>

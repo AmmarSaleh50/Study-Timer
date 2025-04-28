@@ -2,7 +2,7 @@ import React, { useRef, useLayoutEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MdHome, MdListAlt, MdTimer, MdChat, MdPerson } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
-import '../App.css';
+import '../styles/BottomNavBar.css';
 
 const navItems = [
   { path: '/home', label: 'navbar.home', icon: MdHome },
@@ -24,7 +24,7 @@ export default function BottomNavBar() {
 
   useLayoutEffect(() => {
     if (!navRef.current || !indicatorRef.current || activeIdx === -1) return;
-    const navBtns = navRef.current.querySelectorAll('.bottom-nav-item');
+    const navBtns = navRef.current.querySelectorAll('.navbar__button');
     if (navBtns.length === 0) return;
     const activeBtn = navBtns[activeIdx];
     if (!activeBtn) return;
@@ -34,25 +34,25 @@ export default function BottomNavBar() {
   }, [activeIdx, location.pathname]);
 
   return (
-    <nav className="bottom-nav-bar" ref={navRef}>
-      <div ref={indicatorRef} className="bottom-nav-indicator" />
+    <nav className="navbar" ref={navRef}>
       {navItems.map((item, idx) => {
         const isActive = idx === activeIdx;
         const Icon = item.icon;
         return (
           <button
             key={item.path}
-            className={`bottom-nav-item${isActive ? ' active' : ''}`}
+            className={`navbar__button${isActive ? ' active' : ''}`}
             onClick={() => navigate(item.path)}
             aria-label={t(item.label)}
           >
-            <span className="nav-icon">
-              <Icon size={26} color={isActive ? '#8f8fdd' : '#aaa'} />
+            <span className="navbar__icon">
+              <Icon size={26} color={isActive ? 'var(--accent-color)' : 'var(--muted-text)'} />
             </span>
-            <span className="nav-label">{t(item.label)}</span>
+            <span className="navbar__label">{t(item.label)}</span>
           </button>
         );
       })}
+      <div className="navbar__indicator" ref={indicatorRef} />
     </nav>
   );
 }

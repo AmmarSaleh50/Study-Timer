@@ -3,6 +3,7 @@
     "customization": "Tilpasning",
     "language": "Sprog",
     "invite_friends": "Invitér venner",
+    "copied_invite_link": "Invitationslink kopieret",
     "copy_invite_link": "Kopiér invitationslink",
     "account_settings": "Kontoindstillinger",
     "reset_password": "Nulstil adgangskode",
@@ -16,6 +17,7 @@
     "badges": "Badges",
     "first_routine": "Første rutine",
     "seven_day_streak": "7-dages stime",
+    "theme": "Tema",
     "defaultName": "Studerende"
   },
   "home": {
@@ -222,5 +224,26 @@
     "minute": "m",
     "hours": "timer",
     "minutes": "minutter"
+  },
+  "onboarding": {
+    "languageTitle": "Hvilket sprog foretrækker du?",
+    "nameTitle": "Hvad hedder du?",
+    "welcomeTitle": "Velkommen til FocusForge!",
+    "welcomeDesc": "Din alt-i-en studieledsager. Lad os tage en hurtig rundtur!",
+    "studySessionsTitle": "Følg dine studiesessioner",
+    "studySessionsDesc": "Start timere og log dine fokuserede studiesessioner. Se din samlede studietid vokse!",
+    "routinesTitle": "Byg konsistente rutiner",
+    "routinesDesc": "Opret daglige rutiner og prøv at gennemføre en hel uge for en rutinestræk!",
+    "aiAssistantTitle": "Mød din AI-assistent",
+    "aiAssistantDesc": "Med FocusForge AI kan du chatte for at generere og importere brugerdefinerede rutiner med det samme. Premium-abonnenter får ubegrænset adgang!",
+    "progressTitle": "Se dine fremskridt",
+    "progressDesc": "Tjek dine statistikker, striber og gennemførte rutiner. Bliv motiveret med badges!",
+    "themeTitle": "Vælg et tema",
+    "themeDesc": "Vælg din foretrukne farvetema til appen.",
+    "getStartedTitle": "Klar til at komme i gang?",
+    "getStartedDesc": "Lad os sammen opbygge dine bedste studievaner!",
+    "next": "Næste",
+    "skip": "Spring over",
+    "getStartedBtn": "Kom i gang"
   }
 }

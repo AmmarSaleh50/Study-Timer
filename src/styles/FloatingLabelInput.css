@@ -12,16 +12,16 @@
   box-sizing: border-box;
   padding: 14px 14px 14px 14px;
   font-size: 1em;
-  color: #fff;
-  background: #232234;
-  border: 1.5px solid #47449c;
+  color: var(--text-color);
+  background: var(--card-bg);
+  border: 1.5px solid var(--accent-color);
   border-radius: 8px;
   outline: none;
   transition: border-color 0.22s cubic-bezier(.4,1.6,.4,1), box-shadow 0.22s;
   box-shadow: 0 2px 12px rgba(44,44,80,0.08);
 }
 .floating-label-input input:focus {
-  border-color: #675fc0;
+  border-color: var(--accent-color);
   box-shadow: 0 4px 22px rgba(103,95,192,0.13);
 }
 .floating-label-input input[type="text"],
@@ -31,9 +31,9 @@
   box-sizing: border-box;
   padding: 14px 14px 14px 14px;
   font-size: 1em;
-  color: #fff;
-  background: #232234;
-  border: 1.5px solid #47449c;
+  color: var(--text-color);
+  background: var(--card-bg);
+  border: 1.5px solid var(--accent-color);
   border-radius: 8px;
   outline: none;
   transition: border-color 0.22s cubic-bezier(.4,1.6,.4,1), box-shadow 0.22s, background 0.18s;
@@ -45,7 +45,7 @@
   left: 18px;
   top: 16px;
   transform: none;
-  color: #8e8ed6;
+  color: var(--accent-color);
   font-size: 1.05em;
   font-weight: 500;
   pointer-events: none;
@@ -60,8 +60,8 @@
   top: -13px;
   left: 12px;
   font-size: 0.93em;
-  color: #675fc0;
-  background: #232234;
+  color: var(--accent-color);
+  background: var(--card-bg);
   padding: 0 8px;
   border-radius: 6px;
   font-weight: 600;
@@ -75,7 +75,7 @@
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
-  color: #aaa;
+  color: var(--muted-text);
   font-size: 1.18em;
   transition: color 0.2s, transform 0.2s;
   z-index: 3;
@@ -85,7 +85,7 @@
 }
 .input-icon:active,
 .input-icon:focus {
-  color: #675fc0;
+  color: var(--accent-color);
   transform: scale(1.18);
 }
 .icon-bounce {

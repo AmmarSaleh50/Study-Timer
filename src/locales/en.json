@@ -3,6 +3,7 @@
     "customization": "Customization",
     "language": "Language",
     "invite_friends": "Invite Friends",
+    "copied_invite_link": "Invite Link Copied",
     "copy_invite_link": "Copy Invite Link",
     "account_settings": "Account Settings",
     "reset_password": "Reset Password",
@@ -16,12 +17,15 @@
     "badges": "Badges",
     "first_routine": "First Routine",
     "seven_day_streak": "7-Day Streak",
+    "theme": "Theme",
     "defaultName": "Student"
   },
   "home": {
     "student": "Student",
     "greeting": "Hi, {{name}}!",
     "currentStudyStreak": "Current Study Streak",
+    "streakDay": "{{count}} day",
+    "streakDays": "{{count}} days",
     "streak": "{{count}} days",
     "myAccount": "My Account",
     "quote1": "Small steps every day lead to big results!",
@@ -192,15 +196,18 @@
     "backToTimer": "Back to Timer"
   },
   "profileStatsCard": {
-    "title": "Study Stats",
+    "streakDay": "{{count}} day",
+    "streakDays": "{{count}} days",
+    "streak": "Streak",
+    "days": "days",
     "longestStreak": "Longest Streak",
     "totalMinutes": "Total Minutes",
     "routinesDone": "Routines Done",
     "badges": "Badges",
     "copyButton": "Copy Stats to Clipboard",
     "copyStatsHeader": "My FocusForge Stats:",
-    "streak": "Streak",
-    "days": "days"
+    "title": "Study Stats",
+    "routinesTooltip": "Earn a routine by completing at least one study session every day (Mon–Sun) in a week."
   },
   "routineChat": {
     "title": "Routistant",
@@ -222,5 +229,26 @@
     "minute": "m",
     "hours": "hours",
     "minutes": "minutes"
+  },
+  "onboarding": {
+    "languageTitle": "What language do you prefer?",
+    "nameTitle": "Tell us your name!",
+    "welcomeTitle": "Welcome to FocusForge!",
+    "welcomeDesc": "Your all-in-one study companion. Let’s take a quick tour!",
+    "studySessionsTitle": "Track Your Study Sessions",
+    "studySessionsDesc": "Start timers and log your focused study sessions. See your total study time grow!",
+    "routinesTitle": "Build Consistent Routines",
+    "routinesDesc": "Create daily routines and try to complete a full week for a routine streak!",
+    "aiAssistantTitle": "Meet Your AI Assistant",
+    "aiAssistantDesc": "With FocusForge AI, you can chat to generate and import custom routines instantly. Premium subscribers get unlimited access!",
+    "progressTitle": "See Your Progress",
+    "progressDesc": "Check your stats, streaks, and routines completed. Stay motivated with badges!",
+    "getStartedTitle": "Ready to Get Started?",
+    "getStartedDesc": "Let’s build your best study habits together!",
+    "themeTitle": "Pick a Theme",
+    "themeDesc": "Choose your preferred color theme for the app.",
+    "next": "Next",
+    "skip": "Skip",
+    "getStartedBtn": "Get Started"
   }
 }

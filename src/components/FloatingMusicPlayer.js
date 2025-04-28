@@ -3,7 +3,6 @@ import { SPOTIFY_CLIENT_ID, SPOTIFY_REDIRECT_URI, SPOTIFY_SCOPES } from '../spot
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import SpotifyPlayerControls from './SpotifyPlayerControls';
-import SpotifySearchBar from './SpotifySearchBar';
 import Select from 'react-select';
 import { useTranslation } from 'react-i18next';
 

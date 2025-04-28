@@ -34,6 +34,7 @@
     "customization": "Personalizzazione",
     "language": "Lingua",
     "invite_friends": "Invita amici",
+    "copied_invite_link": "Link di invito copiato",
     "copy_invite_link": "Copia link di invito",
     "account_settings": "Impostazioni account",
     "reset_password": "Reimposta password",
@@ -46,9 +47,10 @@
     "badges": "Badge",
     "first_routine": "Prima routine",
     "seven_day_streak": "Serie di 7 giorni",
+    "theme": "Tema",
+    "defaultName": "Studente",
     "confirm_delete": "Conferma eliminazione",
-    "cancel": "Annulla",
-    "defaultName": "Studente"
+    "cancel": "Annulla"
   },
   "home": {
     "student": "Studente",
@@ -223,5 +225,26 @@
     "minute": "min",
     "hours": "ore",
     "minutes": "minuti"
+  },
+  "onboarding": {
+    "languageTitle": "Quale lingua preferisci?",
+    "nameTitle": "Come ti chiami?",
+    "welcomeTitle": "Benvenuto su FocusForge!",
+    "welcomeDesc": "Il tuo compagno di studio tutto-in-uno. Facciamo un breve tour!",
+    "studySessionsTitle": "Tieni traccia delle tue sessioni di studio",
+    "studySessionsDesc": "Avvia timer e registra le tue sessioni di studio concentrate. Guarda crescere il tuo tempo totale di studio!",
+    "routinesTitle": "Costruisci routine coerenti",
+    "routinesDesc": "Crea routine giornaliere e prova a completare una settimana intera per una serie di routine!",
+    "aiAssistantTitle": "Conosci il tuo assistente AI",
+    "aiAssistantDesc": "Con FocusForge AI puoi chattare per generare e importare routine personalizzate all'istante. Gli abbonati premium ottengono accesso illimitato!",
+    "progressTitle": "Guarda i tuoi progressi",
+    "progressDesc": "Controlla le tue statistiche, serie e routine completate. Rimani motivato con i badge!",
+    "getStartedTitle": "Pronto per iniziare?",
+    "getStartedDesc": "Costruiamo insieme le tue migliori abitudini di studio!",
+    "themeTitle": "Scegli un tema",
+    "themeDesc": "Scegli il tema colore preferito per l'app.",
+    "next": "Avanti",
+    "skip": "Salta",
+    "getStartedBtn": "Inizia"
   }
 }

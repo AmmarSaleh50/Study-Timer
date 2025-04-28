@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './FloatingLabelInput.css';
+import '../styles/FloatingLabelInput.css';
 
 /**
  * Props:

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { db } from './firebase';
+import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import './RoutineRunner.css';
+import './styles/RoutineRunner.css';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 

@@ -3,6 +3,7 @@
     "customization": "Aanpassing",
     "language": "Taal",
     "invite_friends": "Vrienden uitnodigen",
+    "copied_invite_link": "Uitnodigingslink gekopieerd",
     "copy_invite_link": "Uitnodigingslink kopiëren",
     "account_settings": "Accountinstellingen",
     "reset_password": "Wachtwoord opnieuw instellen",
@@ -16,6 +17,7 @@
     "badges": "Badges",
     "first_routine": "Eerste routine",
     "seven_day_streak": "7-daagse reeks",
+    "theme": "Thema",
     "defaultName": "Student"
   },
   "home": {
@@ -222,5 +224,26 @@
     "minute": "m",
     "hours": "uren",
     "minutes": "minuten"
+  },
+  "onboarding": {
+    "languageTitle": "Welke taal heeft je voorkeur?",
+    "nameTitle": "Hoe heet je?",
+    "welcomeTitle": "Welkom bij FocusForge!",
+    "welcomeDesc": "Jouw alles-in-één studiepartner. Laten we snel rondkijken!",
+    "studySessionsTitle": "Houd je studiesessies bij",
+    "studySessionsDesc": "Start timers en log je gefocuste studiesessies. Zie je totale studietijd groeien!",
+    "routinesTitle": "Bouw consistente routines op",
+    "routinesDesc": "Maak dagelijkse routines en probeer een hele week vol te houden voor een routine-reeks!",
+    "aiAssistantTitle": "Maak kennis met je AI-assistent",
+    "aiAssistantDesc": "Met FocusForge AI kun je chatten om direct aangepaste routines te genereren en te importeren. Premium-abonnees krijgen onbeperkte toegang!",
+    "progressTitle": "Bekijk je voortgang",
+    "progressDesc": "Bekijk je statistieken, reeksen en voltooide routines. Blijf gemotiveerd met badges!",
+    "themeTitle": "Kies een thema",
+    "themeDesc": "Kies je favoriete kleurthema voor de app.",
+    "getStartedTitle": "Klaar om te beginnen?",
+    "getStartedDesc": "Laten we samen je beste studiegewoonten opbouwen!",
+    "next": "Volgende",
+    "skip": "Overslaan",
+    "getStartedBtn": "Beginnen"
   }
 }

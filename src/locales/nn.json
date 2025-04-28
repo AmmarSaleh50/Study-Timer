@@ -3,6 +3,7 @@
     "customization": "Tilpassing",
     "language": "Språk",
     "invite_friends": "Inviter vener",
+    "copied_invite_link": "Invitasjonslenkje kopiert",
     "copy_invite_link": "Kopier invitasjonslenkje",
     "account_settings": "Konto-innstillingar",
     "reset_password": "Nullstill passord",
@@ -16,6 +17,7 @@
     "badges": "Merke",
     "first_routine": "Første rutine",
     "seven_day_streak": "7-dagars streak",
+    "theme": "Tema",
     "defaultName": "Student"
   },
   "home": {
@@ -222,5 +224,26 @@
     "minute": "m",
     "hours": "timar",
     "minutes": "minutt"
+  },
+  "onboarding": {
+    "languageTitle": "Kva språk føretrekk du?",
+    "nameTitle": "Kva heiter du?",
+    "welcomeTitle": "Velkomen til FocusForge!",
+    "welcomeDesc": "Din alt-i-eitt studiekamerat. La oss ta ein rask rundtur!",
+    "studySessionsTitle": "Følg studiesesjonane dine",
+    "studySessionsDesc": "Start timarar og logg fokuserte studiesesjonar. Sjå den totale studietida di vekse!",
+    "routinesTitle": "Bygg konsistente rutinar",
+    "routinesDesc": "Lag daglege rutinar og prøv å fullføre ei heil veke for ein rutinestreng!",
+    "aiAssistantTitle": "Møt din AI-assistent",
+    "aiAssistantDesc": "Med FocusForge AI kan du chatte for å generere og importere tilpassa rutinar med ein gong. Premium-abonnentar får uavgrensa tilgang!",
+    "progressTitle": "Sjå framgangen din",
+    "progressDesc": "Sjekk statistikken din, streaks og fullførte rutinar. Hald motivasjonen oppe med merke!",
+    "themeTitle": "Vel eit tema",
+    "themeDesc": "Vel det fargeoppsettet du likar best for appen.",
+    "getStartedTitle": "Klar til å starte?",
+    "getStartedDesc": "La oss byggje dine beste studievanar saman!",
+    "next": "Neste",
+    "skip": "Hopp over",
+    "getStartedBtn": "Start"
   }
 }
