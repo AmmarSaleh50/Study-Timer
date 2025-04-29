@@ -6,20 +6,33 @@ import ProfileAccountSettings from './ProfileAccountSettings';
 import ProfileCustomization from './ProfileCustomization';
 import ProfileUsernameEditor from './ProfileUsernameEditor';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
+import { auth } from '../firebase';
 
 export default function ProfilePage() {
-  // Simulate user info from localStorage
+  // Use centralized user profile hook
+  const {
+    user,
+    avatar,
+    username,
+    theme,
+    language,
+    updateAvatar,
+    updateUsername,
+    updateTheme,
+    updateLanguage,
+    clearUser,
+  } = useUserProfile();
   const { t, i18n } = useTranslation();
-  const user = JSON.parse(localStorage.getItem('user')) || {};
-  const [username, setUsername] = React.useState(user.displayName || user.name || t('profile.defaultName'));
-  const email = user.email || 'No email set';
-  const [avatar, setAvatar] = React.useState(user.avatarUrl || null);
-  const [theme, setTheme] = React.useState('dark');
-  const [language, setLanguage] = React.useState('en');
+  const email = user?.email || 'No email set';
   const [showInviteCopied, setShowInviteCopied] = React.useState(false);
   const [toast, setToast] = React.useState('');
+  const [totalMinutes, setTotalMinutes] = React.useState(0);
+  const [streak, setStreak] = React.useState(0);
+  const [routinesCompleted, setRoutinesCompleted] = React.useState(0);
+  const [badges, setBadges] = React.useState([]);
   const [isGoogleUser, setIsGoogleUser] = React.useState(false);
 
   // Helper: get start/end of current week (Monday-Sunday)
@@ -38,49 +51,62 @@ export default function ProfilePage() {
   }
 
   // Dummy stats for now
-  const [streak, setStreak] = useState(0);
-  const [totalMinutes, setTotalMinutes] = useState(0);
-  const [routinesCompleted, setRoutinesCompleted] = useState(0);
-  const badges = [streak >= 7 ? '7-Day Streak' : null, routinesCompleted >= 1 ? 'First Routine' : null].filter(Boolean);
-
-  // Helper for streak label
-  function streakLabel(count) {
+  const streakLabel = (count) => {
     return count === 1 ? t('profileStatsCard.streakDay', { count }) : t('profileStatsCard.streakDays', { count });
-  }
+  };
 
   function handleLogout() {
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+    auth.signOut().then(() => {
+      clearUser();
+      window.location.href = '/login';
+    });
+  }
+
+  async function deleteUserData(uid) {
+    // Delete routines subcollection (if exists)
+    const routinesCol = collection(db, "users", uid, "routines");
+    const routinesSnap = await getDocs(routinesCol);
+    for (const docSnap of routinesSnap.docs) {
+      await deleteDoc(docSnap.ref);
+    }
+    // Delete user document
+    await deleteDoc(doc(db, "users", uid));
   }
 
   function handleDeleteAccount() {
     import('firebase/auth').then(({ deleteUser }) => {
       const { auth } = require('../firebase');
       if (auth.currentUser) {
-        deleteUser(auth.currentUser)
+        const uid = auth.currentUser.uid;
+        // Delete Firestore data first (entire user document and subcollections)
+        deleteUserData(uid)
           .then(() => {
-            localStorage.clear();
+            // Then delete Auth user
+            return deleteUser(auth.currentUser);
+          })
+          .then(() => {
+            clearUser();
             window.location.href = '/register';
           })
           .catch(err => {
             showToast('Failed to delete account: ' + err.message);
           });
       } else {
-        localStorage.clear();
+        clearUser();
         window.location.href = '/register';
       }
     });
   }
 
   function handleChangePassword() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user?.email) {
+    const currentUser = user;
+    if (!currentUser?.email) {
       showToast('No email found for this account.');
       return;
     }
     import('firebase/auth').then(({ sendPasswordResetEmail }) => {
       const { auth } = require('../firebase');
-      sendPasswordResetEmail(auth, user.email)
+      sendPasswordResetEmail(auth, currentUser.email)
         .then(() => {
           showToast('Password reset email sent! Check your inbox.');
         })
@@ -96,51 +122,22 @@ export default function ProfilePage() {
   }
 
   function handleThemeChange(newTheme) {
-    setTheme(newTheme);
-    // Optionally persist theme
+    updateTheme(newTheme);
   }
   function handleLanguageChange(newLang) {
-    setLanguage(newLang);
-    // Persist language to Firestore
-    if (user?.uid) {
-      setDoc(doc(db, 'users', user.uid), { language: newLang }, { merge: true });
+    updateLanguage(newLang);
+    if (i18n.language !== newLang) {
+      i18n.changeLanguage(newLang);
     }
-    // Persist language to localStorage
-    localStorage.setItem('language', newLang);
-    // Change i18n language immediately
-    i18n.changeLanguage(newLang);
   }
 
   async function handleAvatarChange(newAvatar) {
-    setAvatar(newAvatar);
-    // Persist avatar to Firestore and localStorage
-    if (!user?.uid) {
-      showToast('User ID missing. Cannot save avatar.');
-      return;
-    }
-    try {
-      if (newAvatar === null) {
-        await setDoc(doc(db, 'users', user.uid), { avatarUrl: null }, { merge: true });
-      } else {
-        await setDoc(doc(db, 'users', user.uid), { avatarUrl: newAvatar }, { merge: true });
-      }
-      const updatedUser = { ...user, avatarUrl: newAvatar };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      showToast('Profile photo updated!');
-    } catch (err) {
-      showToast('Failed to save avatar: ' + err.message);
-    }
+    await updateAvatar(newAvatar);
+    showToast('Profile photo updated!');
   }
 
   function handleUsernameChange(newUsername) {
-    setUsername(newUsername);
-    // Persist to Firestore
-    if (user?.uid) {
-      setDoc(doc(db, 'users', user.uid), { displayName: newUsername }, { merge: true });
-    }
-    // Persist to localStorage
-    const updatedUser = { ...user, displayName: newUsername };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+    updateUsername(newUsername);
   }
 
   // Fetch stats from Firestore sessions
@@ -213,28 +210,26 @@ export default function ProfilePage() {
     fetchStats();
   }, [user?.uid]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Detect if the user logged in with Google
-    const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.providerData) {
       setIsGoogleUser(user.providerData.some(p => p.providerId === 'google.com'));
     } else if (window.firebase && window.firebase.auth) {
-      // Fallback: try to get currentUser from firebase auth
-      const currentUser = window.firebase.auth().currentUser;
-      if (currentUser && currentUser.providerData) {
-        setIsGoogleUser(currentUser.providerData.some(p => p.providerId === 'google.com'));
-      }
+      const current = window.firebase.auth().currentUser;
+      setIsGoogleUser(!!(current && current.providerData && current.providerData.some(p => p.providerId === 'google.com')));
+    } else {
+      setIsGoogleUser(false);
     }
-  }, []);
+  }, [user]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Fetch language from Firestore if user is logged in
     async function fetchLanguage() {
       if (!user?.uid) return;
       try {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists() && userDoc.data().language) {
-          setLanguage(userDoc.data().language);
+          updateLanguage(userDoc.data().language);
           if (i18n.language !== userDoc.data().language) {
             i18n.changeLanguage(userDoc.data().language);
           }
@@ -244,12 +239,27 @@ export default function ProfilePage() {
     fetchLanguage();
   }, [user?.uid, i18n]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Change app language immediately when language changes
     if (language && i18n.language !== language) {
       i18n.changeLanguage(language);
     }
   }, [language, i18n]);
+
+  // Add effect to update body class on theme change
+  useEffect(() => {
+    if (theme === 'golden') {
+      document.body.classList.add('golden-theme');
+      document.body.classList.remove('purple-theme');
+    } else if (theme === 'purple') {
+      document.body.classList.add('purple-theme');
+      document.body.classList.remove('golden-theme');
+    } else {
+      document.body.classList.remove('golden-theme');
+      document.body.classList.remove('purple-theme');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   return (
     <div className="profile-main-bg fade-slide-in">
@@ -273,7 +283,12 @@ export default function ProfilePage() {
             {t('profile.copy_invite_link')}
           </button>
         </div>
-        <ProfileCustomization language={language} onLanguageChange={handleLanguageChange} />
+        <ProfileCustomization
+          theme={theme}
+          language={language}
+          onThemeChange={handleThemeChange}
+          onLanguageChange={handleLanguageChange}
+        />
         <ProfileAccountSettings
           onLogout={handleLogout}
           onDeleteAccount={handleDeleteAccount}

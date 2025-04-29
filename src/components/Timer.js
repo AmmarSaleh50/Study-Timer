@@ -22,6 +22,7 @@ import { canRead, canWrite, recordRead, recordWrite } from '../firestoreQuotaGua
 import FloatingLabelInput from './FloatingLabelInput';
 import FloatingMusicPlayer from './FloatingMusicPlayer';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
 
 /* ============================================================================  
    Helper Functions  
@@ -305,6 +306,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions, t, i18n }) {
    - Main component handling timer, sessions, topics, user actions and rendering.  
 ============================================================================ */
 function Timer() {
+  const { user } = useUserProfile();
   const { t, i18n } = useTranslation();
   // Timer and session related states.
   const [topics, setTopics] = useState([]);
@@ -376,10 +378,8 @@ function Timer() {
         alert(t('dashboard.dailyFirestoreReadLimitReached'));
         return;
       }
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user) return;
-      const userId = user.uid;
-      const userDocRef = doc(db, "users", userId);
+      if (!user?.uid) return;
+      const userDocRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userDocRef);
       recordRead();
       const timerData = userSnap.data()?.activeTimer;
@@ -410,7 +410,7 @@ function Timer() {
       }
     };
     fetchTimer();
-  }, [t]); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, t]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   // Fetch user's topics.
   useEffect(() => {
@@ -419,10 +419,8 @@ function Timer() {
         alert(t('dashboard.dailyFirestoreReadLimitReached'));
         return;
       }
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user) return;
-      const userId = user.uid;
-      const userDocRef = doc(db, "users", userId);
+      if (!user?.uid) return;
+      const userDocRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userDocRef);
       recordRead();
       const userData = userSnap.data();
@@ -431,14 +429,12 @@ function Timer() {
       }
     };
     fetchTopics();
-  }, [t]); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, t]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   // --- Real-Time Sessions Sync Across Devices ---
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-    const userId = user.uid;
-    const sessionsRef = collection(db, "users", userId, "sessions");
+    if (!user?.uid) return;
+    const sessionsRef = collection(db, "users", user.uid, "sessions");
     // Listen for real-time updates to sessions
     const unsubscribeSessions = onSnapshot(sessionsRef, (snapshot) => {
       if (!canRead()) {
@@ -452,14 +448,12 @@ function Timer() {
     return () => {
       unsubscribeSessions();
     };
-  }, [t]); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, t]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   // --- Real-Time Timer State Sync Across Devices ---
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-    const userId = user.uid;
-    const userDocRef = doc(db, "users", userId);
+    if (!user?.uid) return;
+    const userDocRef = doc(db, "users", user.uid);
 
     let intervalId = null;
     let lastTimerRunning = timerRunning;
@@ -536,7 +530,7 @@ function Timer() {
     };
     // Only run once on mount
     // eslint-disable-next-line
-  }, [t]); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, t]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
   /* --------------------- User Action Handlers ---------------------- */
 
@@ -552,10 +546,8 @@ function Timer() {
     const newEntry = { name, color: newTopicColor };
     const updated = [...topics, newEntry];
     setTopics(updated);
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-    const userId = user.uid;
-    const userDocRef = doc(db, "users", userId);
+    if (!user?.uid) return;
+    const userDocRef = doc(db, "users", user.uid);
     await setDoc(userDocRef, { topics: updated }, { merge: true });
     recordWrite();
     setNewTopic("");
@@ -573,10 +565,8 @@ function Timer() {
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-    const userId = user.uid;
-    const userDocRef = doc(db, "users", userId);
+    if (!user?.uid) return;
+    const userDocRef = doc(db, "users", user.uid);
     await setDoc(
       userDocRef,
       {
@@ -612,10 +602,8 @@ function Timer() {
       alert(t('dashboard.dailyFirestoreQuotaReached'));
       return;
     }
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-    const userId = user.uid;
-    const userDocRef = doc(db, "users", userId);
+    if (!user?.uid) return;
+    const userDocRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userDocRef);
     recordRead();
     const timerData = userSnap.data()?.activeTimer;
@@ -623,7 +611,7 @@ function Timer() {
     const start = new Date(timerData.startTime);
     const end = new Date();
     const duration = Math.floor((end - start) / 1000);
-    const sessionsRef = collection(db, "users", userId, "sessions");
+    const sessionsRef = collection(db, "users", user.uid, "sessions");
     await addDoc(sessionsRef, {
       subject: timerData.subject,
       startTime: start.toISOString(),
@@ -661,11 +649,10 @@ function Timer() {
       alert(t('dashboard.dailyFirestoreWriteLimitReached'));
       return;
     }
-    const user = JSON.parse(localStorage.getItem("user"));
-    const userId = user.uid;
+    if (!user?.uid) return;
     const now = new Date();
     
-    await updateDoc(doc(db, "users", userId), {
+    await updateDoc(doc(db, "users", user.uid), {
       'activeTimer.isPaused': true,
       'activeTimer.lastPausedAt': now.toISOString(),
     });
@@ -683,14 +670,13 @@ function Timer() {
       alert(t('dashboard.dailyFirestoreWriteLimitReached'));
       return;
     }
-    const user = JSON.parse(localStorage.getItem("user"));
-    const userId = user.uid;
+    if (!user?.uid) return;
     const now = new Date();
     if (!startTime || !lastPausedAt) return;
     const pausedDuration = Math.floor((now - lastPausedAt) / 1000);
     const newTotal = totalPausedDuration + pausedDuration;
   
-    await updateDoc(doc(db, "users", userId), {
+    await updateDoc(doc(db, "users", user.uid), {
       'activeTimer.isPaused': false,
       'activeTimer.totalPausedDuration': newTotal,
       'activeTimer.lastPausedAt': null,
@@ -718,10 +704,8 @@ function Timer() {
       t.name === topicName ? { ...t, color: newColor } : t
     );
     setTopics(updated);
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-    const userId = user.uid;
-    await updateDoc(doc(db, "users", userId), { topics: updated });
+    if (!user?.uid) return;
+    await updateDoc(doc(db, "users", user.uid), { topics: updated });
     recordWrite();
   };
 
@@ -733,10 +717,8 @@ function Timer() {
     }
     const updated = topics.filter((t) => t.name !== topicName);
     setTopics(updated);
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-    const userId = user.uid;
-    await updateDoc(doc(db, "users", userId), { topics: updated });
+    if (!user?.uid) return;
+    await updateDoc(doc(db, "users", user.uid), { topics: updated });
     recordWrite();
     if (subject === topicName) setSubject("");
   };
@@ -749,11 +731,9 @@ function Timer() {
       alert(t('dashboard.dailyFirestoreQuotaReached'));
       return;
     }
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) return;
-    const userId = user.uid;
+    if (!user?.uid) return;
     // Reset only study sessions (statistics), keep topics and activeTimer
-    const sessionsRef = collection(db, "users", userId, "sessions");
+    const sessionsRef = collection(db, "users", user.uid, "sessions");
     const snapshot = await getDocs(sessionsRef);
     recordRead();
     const deletePromises = snapshot.docs.map((docSnap) => deleteDoc(docSnap.ref));

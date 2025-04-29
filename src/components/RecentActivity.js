@@ -2,16 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
 
 export default function RecentActivity() {
+  const { user } = useUserProfile();
   const { t } = useTranslation();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchSessions() {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user) return;
+      if (!user?.uid) return;
       const userId = user.uid;
       const sessionsRef = collection(db, 'users', userId, 'sessions');
       const snapshot = await getDocs(sessionsRef);
@@ -22,7 +23,7 @@ export default function RecentActivity() {
       setLoading(false);
     }
     fetchSessions();
-  }, []);
+  }, [user?.uid]);
 
   function formatDuration(mins, t) {
     if (mins >= 60) {

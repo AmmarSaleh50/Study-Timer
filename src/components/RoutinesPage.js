@@ -6,6 +6,7 @@ import FloatingLabelInput from './FloatingLabelInput';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { generateTaskId } from '../utils';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -38,8 +39,8 @@ function getDefaultTask(existingTasks = []) {
 }
 
 const RoutinesPage = () => {
+  const { user } = useUserProfile();
   const { t } = useTranslation();
-  console.log('RoutinesPage mounted');
   const [userId, setUserId] = useState(null);
   const [routines, setRoutines] = useState({}); // { Monday: [task, ...], ... }
   const [selectedDay, setSelectedDay] = useState(DAYS[getCurrentRoutineDayIndex()]);
@@ -60,11 +61,9 @@ const RoutinesPage = () => {
   const [showPullOptions, setShowPullOptions] = useState(false);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
     if (user) setUserId(user.uid);
-  }, []);
+  }, [user]);
 
-  // --- Realtime Firestore listeners for routines and templates ---
   useEffect(() => {
     if (!userId) return;
     // --- Listen for routines changes ---

@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import SpotifyPlayerControls from './SpotifyPlayerControls';
 import Select from 'react-select';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
 
 // Simple music note icon SVG for the button
 const MusicNoteIcon = (
@@ -53,25 +54,23 @@ async function getSpotifyAuthUrl() {
 const DEFAULT_SPOTIFY_URL = "https://open.spotify.com/embed/playlist/37i9dQZF1DXc8kgYqQLMfH"; // Chill Lofi Study Beats
 
 export default function FloatingMusicPlayer() {
+  const { user } = useUserProfile();
   const [panelOpen, setPanelOpen] = useState(false);
   const [inputUrl, setInputUrl] = useState('');
   const [savedUrl, setSavedUrl] = useState('');
   const [detectedSpotify, setDetectedSpotify] = useState(false);
   const [accessToken, setAccessToken] = useState(null);
-  const [user, setUser] = useState(null);
   const [showConnect, setShowConnect] = useState(false);
   const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [playerState, setPlayerState] = useState(null);
   const [playerInterval, setPlayerInterval] = useState(null);
   const [searchSelected, setSearchSelected] = useState(null);
+  const [spotifyUser, setSpotifyUser] = useState(null);
   const { t } = useTranslation();
 
   // Save Spotify refresh token to Firestore for the logged-in user
   async function saveSpotifyRefreshTokenToFirestore(refreshToken) {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) return;
-    const user = JSON.parse(userStr);
     if (!user?.uid) return;
     try {
       await setDoc(doc(db, 'users', user.uid), {
@@ -82,9 +81,6 @@ export default function FloatingMusicPlayer() {
 
   // Load Spotify refresh token from Firestore for the logged-in user
   async function loadSpotifyRefreshTokenFromFirestore() {
-    const userStr = localStorage.getItem('user');
-    if (!userStr) return null;
-    const user = JSON.parse(userStr);
     if (!user?.uid) return null;
     try {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -206,7 +202,7 @@ export default function FloatingMusicPlayer() {
         headers: { Authorization: `Bearer ${accessToken}` }
       })
         .then(res => res.json())
-        .then(setUser);
+        .then(setSpotifyUser);
     }
   }, [accessToken]);
 
@@ -371,7 +367,7 @@ export default function FloatingMusicPlayer() {
             <>
               <div style={{ display: 'flex', alignItems: 'center', fontSize: 15, color: '#aaa', marginBottom: -2,marginTop: 4, gap: 8 }}>
                 <img src={process.env.PUBLIC_URL + '/2024-spotify-logo-icon/Spotify_Primary_Logo_RGB_Green.png'} alt={t('musicPlayer.spotifyLogoAlt')} style={{ height: 22, width: 22, objectFit: 'contain', verticalAlign: 'middle', marginRight: 4 }} draggable={false} onDragStart={e => e.preventDefault()} />
-                {user && user.display_name ? `${t('musicPlayer.connectedToSpotify')} ${user.display_name}` : t('musicPlayer.connectingToSpotify')}
+                {spotifyUser && spotifyUser.display_name ? `${t('musicPlayer.connectedToSpotify')} ${spotifyUser.display_name}` : t('musicPlayer.connectingToSpotify')}
               </div>
               {/* Spotify Search Bar */}
               {/**

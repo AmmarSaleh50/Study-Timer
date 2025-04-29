@@ -2,18 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function TodayRoutinePreview() {
+  const { user } = useUserProfile();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
 
   useEffect(() => {
     async function fetchTodayRoutine() {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user) return;
+      if (!user?.uid) return;
       const userId = user.uid;
       const today = DAYS[new Date().getDay()];
       const routineRef = doc(db, 'users', userId, 'routines', today);
@@ -26,7 +27,7 @@ export default function TodayRoutinePreview() {
       setLoading(false);
     }
     fetchTodayRoutine();
-  }, []);
+  }, [user?.uid]);
 
   if (loading) return <div style={{ margin: '18px 0', color: '#aaa' }}>{t('todayRoutine.loading')}</div>;
 

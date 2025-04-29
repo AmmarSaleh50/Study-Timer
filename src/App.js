@@ -23,6 +23,7 @@ import { setDoc, doc } from "firebase/firestore";
 import BottomNavBar from './components/BottomNavBar';
 import Onboarding from './components/Onboarding';
 import { useTranslation } from 'react-i18next';
+import { UserProfileProvider } from './context/UserProfileContext';
 
 function AppInner() {
   const { t, i18n } = useTranslation();
@@ -195,6 +196,10 @@ function AppInner() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/onboarding" element={isAuth ? <Onboarding onFinish={() => {
+          setShowOnboarding(false);
+          localStorage.setItem('onboardingComplete', 'true');
+        }} /> : <Navigate to="/login" replace />} />
         <Route path="/" element={isAuth ? <HomePage /> : <Navigate to="/login" replace />} />
         <Route path="/home" element={isAuth ? <HomePage /> : <Navigate to="/login" replace />} />
         <Route path="/timer" element={isAuth ? <Timer /> : <Navigate to="/login" replace />} />
@@ -213,7 +218,9 @@ function AppInner() {
 export default function App() {
   return (
     <Router>
-      <AppInner />
+      <UserProfileProvider>
+        <AppInner />
+      </UserProfileProvider>
     </Router>
   );
 }

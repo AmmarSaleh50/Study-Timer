@@ -5,6 +5,7 @@ import { auth, googleProvider } from "../firebase";
 import { useNavigate, Link } from "react-router-dom";
 import FloatingLabelInput from './FloatingLabelInput';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
 
 export default function Register() {
   // ---------- State Variables ----------
@@ -14,17 +15,17 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { setUserFromAuth } = useUserProfile();
 
   // ---------- Registration Functionality ----------
   const registerUser = async (e) => {
     e.preventDefault();
     try {
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ uid: userCred.user.uid, email: userCred.user.email })
-      );
-      navigate("/");
+      const user = userCred.user;
+      let profile = { uid: user.uid, email: user.email };
+      setUserFromAuth(profile);
+      navigate("/onboarding");
     } catch (err) {
       setError(t('register.registrationFailed'));
     }
@@ -35,8 +36,9 @@ export default function Register() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      localStorage.setItem("user", JSON.stringify({ uid: user.uid, email: user.email }));
-      navigate("/");
+      let profile = { uid: user.uid, email: user.email };
+      setUserFromAuth(profile);
+      navigate("/onboarding");
     } catch (err) {
       setError(t('register.googleSignInFailed'));
     }
@@ -45,7 +47,7 @@ export default function Register() {
   // ---------- Render Registration Form ----------
   return (
     <div className="home-main-bg fade-slide-in" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="register-container card-animate" style={{ maxWidth: "400px", width: "100%", textAlign: "center", padding: "20px" }}>
+      <div className="register-container card-animate register-card-ring" style={{ maxWidth: "400px", width: "100%", textAlign: "center", padding: "20px", position: 'relative' }}>
         <h1 style={{ marginBottom: "30px" }}>{t('register.title')}</h1>
         <form onSubmit={registerUser} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <FloatingLabelInput

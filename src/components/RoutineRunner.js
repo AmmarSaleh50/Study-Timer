@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import useUserProfile from '../hooks/useUserProfile';
 import './styles/RoutineRunner.css';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -26,6 +27,7 @@ function parseTime(timeStr) {
 }
 
 const RoutineRunner = ({ hideUI = false }) => {
+  const { user } = useUserProfile();
   const [userId, setUserId] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(-1);
@@ -34,9 +36,8 @@ const RoutineRunner = ({ hideUI = false }) => {
   const notificationRef = useRef(null);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
     if (user) setUserId(user.uid);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!userId) return;

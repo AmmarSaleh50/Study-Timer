@@ -1,11 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
 
-export default function ProfileCustomization({ language, onLanguageChange }) {
+export default function ProfileCustomization() {
+  const { theme, language, updateTheme, updateLanguage } = useUserProfile();
   const { t, i18n } = useTranslation();
-
-  // Theme state and handler
-  const [theme, setTheme] = React.useState(() => localStorage.getItem('theme') || 'default');
 
   React.useEffect(() => {
     if (language && i18n.language !== language) {
@@ -13,7 +12,6 @@ export default function ProfileCustomization({ language, onLanguageChange }) {
     }
   }, [language, i18n]);
 
-  // Theme effect
   React.useEffect(() => {
     if (theme === 'golden') {
       document.body.classList.add('golden-theme');
@@ -25,15 +23,29 @@ export default function ProfileCustomization({ language, onLanguageChange }) {
       document.body.classList.remove('golden-theme');
       document.body.classList.remove('purple-theme');
     }
-    localStorage.setItem('theme', theme);
   }, [theme]);
+
+  // Handler for theme change
+  const handleThemeChange = (e) => {
+    const newTheme = e.target.value;
+    updateTheme(newTheme);
+  };
+
+  // Handler for language change
+  const handleLanguageChange = (e) => {
+    const selectedLang = e.target.value;
+    updateLanguage(selectedLang);
+    if (i18n.language !== selectedLang) {
+      i18n.changeLanguage(selectedLang);
+    }
+  };
 
   return (
     <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: 18, margin: '0 0 18px 0', boxShadow: '0 2px 8px #0002', color: 'var(--text-color)' }}>
       <div style={{ fontWeight: 600, fontSize: 17, color: 'var(--accent-color)', marginBottom: 10 }}>{t('profile.customization')}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
         <span style={{ color: 'var(--muted-text)', fontSize: 15 }}>{t('profile.language')}</span>
-        <select value={language} onChange={e => onLanguageChange(e.target.value)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--drawer-bg)', color: 'var(--button-text)', fontSize: 15 }}>
+        <select value={language} onChange={handleLanguageChange} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--drawer-bg)', color: 'var(--button-text)', fontSize: 15 }}>
           <option value="en">English</option>
           <option value="de">Deutsch</option>
           <option value="fr">Français</option>
@@ -51,7 +63,7 @@ export default function ProfileCustomization({ language, onLanguageChange }) {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <span style={{ color: 'var(--muted-text)', fontSize: 15 }}>{t('profile.theme')}</span>
-        <select value={theme} onChange={e => setTheme(e.target.value)} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--drawer-bg)', color: 'var(--button-text)', fontSize: 15 }}>
+        <select value={theme} onChange={handleThemeChange} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--drawer-bg)', color: 'var(--button-text)', fontSize: 15 }}>
           <option value="default">Classic Purple</option>
           <option value="golden">Gold & Black</option>
         </select>

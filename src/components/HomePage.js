@@ -1,19 +1,20 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
 import '../styles/HomePage.css';
 import TodayRoutinePreview from './TodayRoutinePreview';
 import RecentActivity from './RecentActivity';
 
 export default function HomePage() {
+  // Use centralized user profile hook
+  const { user, avatar, username } = useUserProfile();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  // Optionally fetch user info from localStorage or context
-  const user = JSON.parse(localStorage.getItem('user')) || {};
-  const userName = user.displayName || user.name || t('home.student');
+  const userName = username || user?.displayName || user?.name || t('home.student');
   const userInitial = userName[0] || 'S';
   // Avatar state for live updates
-  const [avatar, setAvatar] = React.useState(user.avatarUrl || null);
+  const [avatarState, setAvatar] = React.useState(avatar);
   // Simple motivational quotes array
   const quotes = [
     t('home.quote1'),
@@ -51,7 +52,7 @@ export default function HomePage() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 18, marginTop: 6 }}>
           <div
             style={{
-              background: avatar ? `url(${avatar}) center/cover` : 'var(--accent-color)',
+              background: avatarState ? `url(${avatarState}) center/cover` : 'var(--accent-color)',
               width: 60, height: 60, borderRadius: '50%',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontWeight: 700, fontSize: 28, color: 'var(--profile-pfp-text)', boxShadow: '0 2px 8px #0003',
@@ -64,7 +65,7 @@ export default function HomePage() {
             title={t('home.myAccount')}
             onClick={() => navigate('/profile')}
           >
-            {!avatar && userInitial}
+            {!avatarState && userInitial}
           </div>
           <h1 className="heading-animate" style={{ margin: 0, fontSize: 30, fontWeight: 700, color: 'var(--text-color)', letterSpacing: '-1px', textAlign: 'center', lineHeight: 1.2 }}>
             {t('home.greeting', { name: userName })}

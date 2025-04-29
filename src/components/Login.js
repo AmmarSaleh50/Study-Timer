@@ -5,8 +5,9 @@ import { auth, googleProvider } from "../firebase";
 import { useNavigate, Link } from "react-router-dom";
 import FloatingLabelInput from './FloatingLabelInput';
 import { useTranslation } from 'react-i18next';
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import useUserProfile from '../hooks/useUserProfile';
 
 export default function Login() {
   // ---------- State Variables ----------
@@ -15,34 +16,54 @@ export default function Login() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { setUserFromAuth } = useUserProfile();
 
   // ---------- Login Functionality ----------
   const loginUser = async (e) => {
     e.preventDefault();
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCred.user;
+      console.log('Auth login success:', userCred.user);
 
-      // Store user details in localStorage
-      // Fetch full profile from Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      let profile = { uid: user.uid, email: user.email };
+      const userDocRef = doc(db, "users", userCred.user.uid);
+      const userDoc = await getDoc(userDocRef);
+      console.log('Firestore userDoc:', userDoc.exists(), userDoc.data());
+
+      let profile = { uid: userCred.user.uid, email: userCred.user.email };
       if (userDoc.exists()) {
         const data = userDoc.data();
         if (data.displayName) profile.displayName = data.displayName;
         if (data.avatarUrl) profile.avatarUrl = data.avatarUrl;
-        if (data.language) {
-          localStorage.setItem("language", data.language);
-          import('i18next').then(i18nModule => {
-            i18nModule.default.changeLanguage(data.language);
-          });
+        else if (data.avatarBase64) profile.avatarUrl = data.avatarBase64;
+        if (data.language) profile.language = data.language;
+        if (data.theme) profile.theme = data.theme;
+      } else {
+        await setDoc(userDocRef, { email: userCred.user.email }, { merge: true });
+        console.log('Created minimal Firestore user doc');
+      }
+      setUserFromAuth(profile);
+      console.log('Profile set, navigating in:', profile);
+      // --- Apply language immediately ---
+      if (profile.language && i18n.language !== profile.language) {
+        i18n.changeLanguage(profile.language);
+      }
+      // --- Apply theme immediately ---
+      if (profile.theme && typeof document !== 'undefined') {
+        if (profile.theme === 'golden') {
+          document.body.classList.add('golden-theme');
+          document.body.classList.remove('purple-theme');
+        } else if (profile.theme === 'purple') {
+          document.body.classList.add('purple-theme');
+          document.body.classList.remove('golden-theme');
+        } else {
+          document.body.classList.remove('golden-theme');
+          document.body.classList.remove('purple-theme');
         }
       }
-      localStorage.setItem("user", JSON.stringify(profile));
-
       navigate("/");
     } catch (err) {
+      console.error('Login error:', err);
       setError(t('login.invalidEmailOrPassword'));
     }
   };
@@ -53,7 +74,6 @@ export default function Login() {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Store user details in localStorage
       // Fetch full profile from Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
       let profile = { uid: user.uid, email: user.email };
@@ -61,15 +81,28 @@ export default function Login() {
         const data = userDoc.data();
         if (data.displayName) profile.displayName = data.displayName;
         if (data.avatarUrl) profile.avatarUrl = data.avatarUrl;
-        if (data.language) {
-          localStorage.setItem("language", data.language);
-          import('i18next').then(i18nModule => {
-            i18nModule.default.changeLanguage(data.language);
-          });
+        else if (data.avatarBase64) profile.avatarUrl = data.avatarBase64;
+        if (data.language) profile.language = data.language;
+        if (data.theme) profile.theme = data.theme;
+      }
+      setUserFromAuth(profile);
+      // --- Apply language immediately ---
+      if (profile.language && i18n.language !== profile.language) {
+        i18n.changeLanguage(profile.language);
+      }
+      // --- Apply theme immediately ---
+      if (profile.theme && typeof document !== 'undefined') {
+        if (profile.theme === 'golden') {
+          document.body.classList.add('golden-theme');
+          document.body.classList.remove('purple-theme');
+        } else if (profile.theme === 'purple') {
+          document.body.classList.add('purple-theme');
+          document.body.classList.remove('golden-theme');
+        } else {
+          document.body.classList.remove('golden-theme');
+          document.body.classList.remove('purple-theme');
         }
       }
-      localStorage.setItem("user", JSON.stringify(profile));
-
       navigate("/");
     } catch (err) {
       setError(t('login.googleSignInFailed'));
@@ -79,7 +112,7 @@ export default function Login() {
   // ---------- Render Login Form ----------
   return (
     <div className="home-main-bg fade-slide-in" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="login-container card-animate" style={{ maxWidth: "400px", width: "100%", textAlign: "center", padding: "20px" }}>
+      <div className="login-container card-animate login-card-ring" style={{ maxWidth: "400px", width: "100%", textAlign: "center", padding: "20px", position: 'relative' }}>
         <h1 style={{ marginBottom: "30px" }}>{t('login.title')}</h1>
         <form onSubmit={loginUser} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <FloatingLabelInput

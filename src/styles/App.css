@@ -805,3 +805,10 @@ h1, .heading-animate {
     padding-bottom: 25px;
   }
 }
+
+/* -------------------- Auth Card Ring Effects -------------------- */
+.login-card-ring, .register-card-ring {
+  box-shadow: 0 2px 24px #0006, 0 0 0 2.5px var(--card-border);
+  border-radius: 18px;
+  position: relative;
+}

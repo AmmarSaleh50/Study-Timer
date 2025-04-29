@@ -4,6 +4,8 @@ import { db } from '../firebase';
 import { setDoc, doc } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import useUserProfile from '../hooks/useUserProfile';
+import { auth } from '../firebase';
 
 const LANGUAGE_OPTIONS = [
   { code: 'en', label: 'English' },
@@ -22,14 +24,14 @@ const LANGUAGE_OPTIONS = [
 ];
 
 export default function Onboarding({ onFinish }) {
+  const { user, setUserFromAuth, updateLanguage } = useUserProfile();
   const { i18n, t } = useTranslation();
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user')) || {};
   const [idx, setIdx] = useState(0);
   const [maxIdx, setMaxIdx] = useState(0);
-  const [username, setUsername] = useState(user.displayName || user.name || '');
-  const [language, setLanguage] = useState(localStorage.getItem('language') || 'en');
-  const [theme, setTheme] = useState(localStorage.getItem('theme'));
+  const [username, setUsername] = useState(user?.displayName || user?.name || '');
+  const [language, setLanguageState] = useState(user?.language || localStorage.getItem('language') || 'en');
+  const [theme, setTheme] = useState(user?.theme || localStorage.getItem('theme'));
   const [error, setError] = useState('');
 
   const slides = [
@@ -95,13 +97,21 @@ export default function Onboarding({ onFinish }) {
       setError('Please select a language.');
       return false;
     }
-    const updatedUser = { ...user, name: username.trim(), displayName: username.trim() };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    localStorage.setItem('language', language);
-    if (user.uid) {
-      await setDoc(doc(db, 'users', user.uid), { name: username.trim(), displayName: username.trim(), language }, { merge: true });
-    }
+    // Always get UID from user or auth
+    const uid = user?.uid || auth.currentUser?.uid;
+    const updatedUser = { ...user, uid, name: username.trim(), displayName: username.trim(), language, theme };
+    setUserFromAuth(updatedUser);
+    updateLanguage(language);
     setError('');
+    // --- Save to Firestore ---
+    if (uid) {
+      await setDoc(doc(db, 'users', uid), {
+        name: username.trim(),
+        displayName: username.trim(),
+        language,
+        theme
+      }, { merge: true });
+    }
     return true;
   }
 
@@ -151,7 +161,7 @@ export default function Onboarding({ onFinish }) {
   // Change language in real time when user selects a language
   function handleLanguageChange(e) {
     const selectedLang = e.target.value;
-    setLanguage(selectedLang);
+    setLanguageState(selectedLang);
     if (i18n.language !== selectedLang) {
       i18n.changeLanguage(selectedLang);
     }
@@ -172,7 +182,6 @@ export default function Onboarding({ onFinish }) {
                 value={theme}
                 onChange={e => {
                   setTheme(e.target.value);
-                  localStorage.setItem('theme', e.target.value);
                   if (e.target.value === 'golden') {
                     document.body.classList.add('golden-theme');
                     document.body.classList.remove('purple-theme');
