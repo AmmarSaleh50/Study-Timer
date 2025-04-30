@@ -17,7 +17,11 @@
     "badges": "Badges",
     "first_routine": "First Routine",
     "seven_day_streak": "7-Day Streak",
-    "theme": "Theme",
+    "theme": {
+      "label": "Theme",
+      "default": "Classic Purple",
+      "golden": "Gold & Black"
+    },
     "defaultName": "Student"
   },
   "home": {

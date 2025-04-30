@@ -2,22 +2,26 @@
   "profile": {
     "customization": "Tilpasning",
     "language": "Sprog",
-    "invite_friends": "Invitér venner",
+    "invite_friends": "Inviter venner",
     "copied_invite_link": "Invitationslink kopieret",
-    "copy_invite_link": "Kopiér invitationslink",
+    "copy_invite_link": "Kopier invitationslink",
     "account_settings": "Kontoindstillinger",
     "reset_password": "Nulstil adgangskode",
     "logout": "Log ud",
     "delete_account": "Slet konto",
     "delete_confirm": "Er du sikker på, at du vil slette din konto? Dette kan ikke fortrydes.",
     "confirm_delete": "Ja, slet min konto",
-    "streak": "Stime",
+    "streak": "Streak",
     "total_minutes": "Samlede minutter",
-    "routines_completed": "Fuldførte rutiner",
+    "routines_completed": "Færdige rutiner",
     "badges": "Badges",
-    "first_routine": "Første rutine",
-    "seven_day_streak": "7-dages stime",
-    "theme": "Tema",
+    "first_routine": "Første routine",
+    "seven_day_streak": "7-dages streak",
+    "theme": {
+      "label": "Tema",
+      "default": "Klassisk lilla",
+      "golden": "Guld & Sort"
+    },
     "defaultName": "Studerende"
   },
   "home": {

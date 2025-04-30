@@ -62,10 +62,10 @@ export default function ProfileCustomization() {
         </select>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <span style={{ color: 'var(--muted-text)', fontSize: 15 }}>{t('profile.theme')}</span>
+        <span style={{ color: 'var(--muted-text)', fontSize: 15 }}>{t('profile.theme.label')}</span>
         <select value={theme} onChange={handleThemeChange} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--drawer-bg)', color: 'var(--button-text)', fontSize: 15 }}>
-          <option value="default">Classic Purple</option>
-          <option value="golden">Gold & Black</option>
+          <option value="default">{t('profile.theme.default')}</option>
+          <option value="golden">{t('profile.theme.golden')}</option>
         </select>
       </div>
     </div>

@@ -17,7 +17,11 @@
     "badges": "Badges",
     "first_routine": "Eerste routine",
     "seven_day_streak": "7-daagse reeks",
-    "theme": "Thema",
+    "theme": {
+      "label": "Thema",
+      "default": "Klassiek paars",
+      "golden": "Goud & Zwart"
+    },
     "defaultName": "Student"
   },
   "home": {

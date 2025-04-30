@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/ProfilePage.css';
+import '../styles/animations.css';
 import ProfileAvatarEditor from './ProfileAvatarEditor';
 import ProfileStatsCard from './ProfileStatsCard';
 import ProfileAccountSettings from './ProfileAccountSettings';
@@ -9,10 +10,14 @@ import { db } from '../firebase';
 import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
 import useUserProfile from '../hooks/useUserProfile';
+import PageLoader from './PageLoader';
 import { auth } from '../firebase';
 
 export default function ProfilePage() {
-  // Use centralized user profile hook
+  const [loading, setLoading] = useState(true);
+// Set to false after profile and stats loaded
+const [profileLoaded, setProfileLoaded] = useState(false);
+const [statsLoaded, setStatsLoaded] = useState(false);
   const {
     user,
     avatar,
@@ -206,9 +211,22 @@ export default function ProfilePage() {
       } catch (e) {
         // Optionally handle error
       }
+      setStatsLoaded(true);
     }
     fetchStats();
   }, [user?.uid]);
+
+  useEffect(() => {
+    if (user && username && email) {
+      setProfileLoaded(true);
+    }
+  }, [user, username, email]);
+
+  useEffect(() => {
+    if (profileLoaded && statsLoaded) {
+      setLoading(false);
+    }
+  }, [profileLoaded, statsLoaded]);
 
   useEffect(() => {
     // Detect if the user logged in with Google
@@ -262,44 +280,50 @@ export default function ProfilePage() {
   }, [theme]);
 
   return (
-    <div className="profile-main-bg fade-slide-in">
-      <div className="app-container card-animate">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginTop: -80}}>
+    <PageLoader loading={loading}>
+      <div className="profile-main-bg">
+        <div className="app-container">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginTop: -80}}>
           <ProfileAvatarEditor avatarUrl={avatar} onAvatarChange={handleAvatarChange} initialLetter={username[0]} />
-          <ProfileUsernameEditor username={username} onUsernameChange={handleUsernameChange} />
-          <div style={{ color: 'var(--muted-text)', fontSize: 16, marginTop: -10, marginBottom: 14 }}>{email}</div>
-        </div>
-        <ProfileStatsCard streak={streak} totalMinutes={totalMinutes} routinesCompleted={routinesCompleted} badges={badges} />
-        <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: 14, margin: '0 0 18px 0', boxShadow: '0 2px 8px #0002', textAlign: 'center' }}>
-          <div style={{ fontWeight: 600, fontSize: 17, color: 'var(--accent-color)', marginBottom: 10 }}>{t('profile.invite_friends')}</div>
-          <button
-            className="save-btn button-pop button-ripple"
-            style={{ width: '80%', maxWidth: 280, fontSize: 17, padding: '10px 0', background: 'var(--button-bg)', color: 'var(--button-text)' }}
-            onClick={() => {
-              navigator.clipboard.writeText(window.location.origin + '/register');
+            <ProfileUsernameEditor username={username} onUsernameChange={handleUsernameChange} />
+            <div style={{ color: 'var(--muted-text)', fontSize: 16, marginTop: -10, marginBottom: 14 }}>{email}</div>
+          </div>
+          <div><ProfileStatsCard streak={streak} totalMinutes={totalMinutes} routinesCompleted={routinesCompleted} badges={badges} /></div>
+          <div style={{ background: 'var(--card-bg)', borderRadius: 14, padding: 14, margin: '0 0 18px 0', boxShadow: '0 2px 8px #0002', textAlign: 'center' }}>
+            <div style={{ fontWeight: 600, fontSize: 17, color: 'var(--accent-color)', marginBottom: 10 }}>{t('profile.invite_friends')}</div>
+            <button
+              className="save-btn button-pop button-ripple"
+              style={{ width: '80%', maxWidth: 280, fontSize: 17, padding: '10px 0', background: 'var(--button-bg)', color: 'var(--button-text)' }}
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.origin + '/register');
               showToast(t('profile.copied_invite_link'));
-            }}
-          >
-            {t('profile.copy_invite_link')}
-          </button>
+              }}
+            >
+              {t('profile.copy_invite_link')}
+            </button>
         </div>
+        <div>
         <ProfileCustomization
           theme={theme}
           language={language}
           onThemeChange={handleThemeChange}
           onLanguageChange={handleLanguageChange}
         />
+        </div>
+        <div>
         <ProfileAccountSettings
           onLogout={handleLogout}
           onDeleteAccount={handleDeleteAccount}
           onChangePassword={handleChangePassword}
           isGoogleUser={isGoogleUser}
         />
+        </div>
         {/* Centered toast for profile actions and copy invite link */}
         {toast && (
           <div className="profile-toast-centered">{toast}</div>
         )}
       </div>
     </div>
+    </PageLoader>
   );
 }

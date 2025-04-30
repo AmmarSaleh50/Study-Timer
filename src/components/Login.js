@@ -111,7 +111,7 @@ export default function Login() {
 
   // ---------- Render Login Form ----------
   return (
-    <div className="home-main-bg fade-slide-in" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="home-main-bg fade-slide-in" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="login-container card-animate login-card-ring" style={{ maxWidth: "400px", width: "100%", textAlign: "center", padding: "20px", position: 'relative' }}>
         <h1 style={{ marginBottom: "30px" }}>{t('login.title')}</h1>
         <form onSubmit={loginUser} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -141,7 +141,7 @@ export default function Login() {
             {t('login.loginButton')}
           </button>
           <button type="button" onClick={handleGoogleSignIn} className="button-pop button-ripple" style={{ width: "100%", background: "#fff", color: "#232234", fontWeight: 600, border: "1.5px solid var(--accent-color)", borderRadius: 8, padding: "12px 0", fontSize: "1.1em", marginBottom: 8, marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 22, height: 22, marginRight: 8 }} />
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt={t('login.googleSignInButton')} style={{ width: 22, height: 22, marginRight: 8 }} />
             <span>{t('login.googleSignInButton')}</span>
           </button>
         </form>

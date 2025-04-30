@@ -1,10 +1,14 @@
 /* Dashboard Styles - extracted for modularity */
 
-.dashboard-main-bg {
+.timer-main-bg {
+  min-height: 100vh;
   width: 100vw;
-  background: var(--secondary-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 84px;
   box-sizing: border-box;
-  padding-bottom: 70px; /* Ensure content is visible above navbar */
 }
 
 .app-container {

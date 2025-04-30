@@ -6,7 +6,7 @@ import useUserProfile from '../hooks/useUserProfile';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-export default function TodayRoutinePreview() {
+export default function TodayRoutinePreview({ onLoaded }) {
   const { user } = useUserProfile();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +28,12 @@ export default function TodayRoutinePreview() {
     }
     fetchTodayRoutine();
   }, [user?.uid]);
+
+  useEffect(() => {
+    if (!loading && onLoaded) {
+      onLoaded();
+    }
+  }, [loading, onLoaded]);
 
   if (loading) return <div style={{ margin: '18px 0', color: '#aaa' }}>{t('todayRoutine.loading')}</div>;
 

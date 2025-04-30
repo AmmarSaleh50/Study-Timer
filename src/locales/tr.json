@@ -30,24 +30,28 @@
     "backToTimer": "Zamanlayıcıya geri dön"
   },
   "profile": {
-    "customization": "Kişiselleştirme",
+    "customization": "Özelleştirme",
     "language": "Dil",
-    "invite_friends": "Arkadaşlarını davet et",
+    "invite_friends": "Arkadaş davet et",
     "copied_invite_link": "Davet bağlantısı kopyalandı",
     "copy_invite_link": "Davet bağlantısını kopyala",
     "account_settings": "Hesap Ayarları",
     "reset_password": "Şifreyi sıfırla",
-    "logout": "Çıkış yap",
-    "delete_account": "Hesabı sil",
+    "logout": "Çıkış Yap",
+    "delete_account": "Hesabı Sil",
     "delete_confirm": "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     "confirm_delete": "Evet, hesabımı sil",
     "streak": "Seri",
-    "total_minutes": "Toplam Dakika",
-    "routines_completed": "Tamamlanan Rutinler",
-    "badges": "Rozetler",
-    "first_routine": "İlk Rutin",
-    "seven_day_streak": "7 Günlük Seri",
-    "theme": "Tema",
+    "total_minutes": "Toplam dakika",
+    "routines_completed": "Tamamlanan rutinler",
+    "badges": "Madalyalar",
+    "first_routine": "İlk rutin",
+    "seven_day_streak": "7 günlük seri",
+    "theme": {
+      "label": "Tema",
+      "default": "Klasik Mor",
+      "golden": "Altın & Siyah"
+    },
     "defaultName": "Öğrenci"
   },
   "home": {

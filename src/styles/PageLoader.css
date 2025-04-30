@@ -1,0 +1,12 @@
+.page-loader-fade {
+  opacity: 1;
+  transition: opacity 0.4s cubic-bezier(.4,0,.2,1);
+}
+.page-loader-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.page-loader-visible {
+  opacity: 1;
+  pointer-events: auto;
+}

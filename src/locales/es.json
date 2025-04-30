@@ -36,11 +36,11 @@
     "invite_friends": "Invitar amigos",
     "copied_invite_link": "Enlace de invitación copiado",
     "copy_invite_link": "Copiar enlace de invitación",
-    "account_settings": "Configuración de la cuenta",
+    "account_settings": "Configuración de cuenta",
     "reset_password": "Restablecer contraseña",
     "logout": "Cerrar sesión",
     "delete_account": "Eliminar cuenta",
-    "delete_confirm": "¿Está seguro de que desea eliminar su cuenta? Esta acción no se puede deshacer.",
+    "delete_confirm": "¿Estás seguro de que quieres eliminar tu cuenta? Esto no se puede deshacer.",
     "confirm_delete": "Sí, eliminar mi cuenta",
     "streak": "Racha",
     "total_minutes": "Minutos totales",
@@ -48,7 +48,11 @@
     "badges": "Insignias",
     "first_routine": "Primera rutina",
     "seven_day_streak": "Racha de 7 días",
-    "theme": "Tema",
+    "theme": {
+      "label": "Tema",
+      "default": "Violeta clásico",
+      "golden": "Oro & Negro"
+    },
     "defaultName": "Estudiante"
   },
   "home": {

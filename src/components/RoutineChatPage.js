@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import useUserProfile from '../hooks/useUserProfile';
+import PageLoader from './PageLoader';
 import '../styles/RoutineChatPage.css';
+import '../styles/animations.css';
 
 const AI_AVATAR = <span className="routinechat-avatar" title="AI">🤖</span>;
 const USER_AVATAR = <span className="routinechat-avatar" title="You">🧑</span>;
@@ -86,6 +89,9 @@ function extractJsonFromText(text) {
 }
 
 const RoutineChatPage = ({ onImportRoutine }) => {
+  const [loading, setLoading] = React.useState(true);
+  const { user } = useUserProfile();
+  const [chatLoaded, setChatLoaded] = React.useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([
@@ -94,12 +100,24 @@ const RoutineChatPage = ({ onImportRoutine }) => {
   const [input, setInput] = useState('');
   const [pendingRoutine, setPendingRoutine] = useState(null);
   const [importPrompt, setImportPrompt] = useState(false);
-  const [loading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [streamingText, setStreamingText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isAccumulatingJson, setIsAccumulatingJson] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Set chatLoaded to true after initial messages are set
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      setChatLoaded(true);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (user && chatLoaded) {
+      setLoading(false);
+    }
+  }, [user, chatLoaded]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -197,71 +215,73 @@ const RoutineChatPage = ({ onImportRoutine }) => {
   const hasValidRoutine = pendingRoutine && typeof pendingRoutine === 'object' && Object.keys((pendingRoutine.weekly_study_routine || pendingRoutine)).length > 0;
 
   return (
-    <div className="routinechat-bg-animated">
-      <div className="routinechat-card card-animate">
-        <div className="routinechat-header heading-animate classic">
-          <span className="classic-main">{t('routineChat.title', 'Routistant')}</span>
-          <div className="routinechat-header-underline classic-underline" />
-        </div>
-        <div className="routinechat-messages-area">
-          {messages.map((msg, i) => (
-            <div key={i} className={`routinechat-bubble ${msg.sender}`}>
-              {msg.sender === 'ai' && AI_AVATAR}
-              <span className="routinechat-bubble-content">
-                {msg.text}
-              </span>
-              {msg.sender === 'user' && USER_AVATAR}
-            </div>
-          ))}
-          {isStreaming && !isAccumulatingJson && (
-            <div className="routinechat-bubble ai">
-              {AI_AVATAR}
-              <span className="routinechat-bubble-content routinechat-streaming">{streamingText}</span>
+    <PageLoader loading={loading}>
+      <div className="routinechat-bg-animated">
+        <div className="routinechat-card">
+          <div className="routinechat-header heading-animate classic">
+            <span className="classic-main">{t('routineChat.title', 'Routistant')}</span>
+            <div className="routinechat-header-underline classic-underline" />
+          </div>
+          <div className="routinechat-messages-area">
+            {messages.map((msg, i) => (
+              <div key={i} className={`routinechat-bubble heading-animate ${msg.sender} ${i < 8 ? ` stagger-${i+1}` : ''}`}>
+                {msg.sender === 'ai' && AI_AVATAR}
+                <span className="routinechat-bubble-content">
+                  {msg.text}
+                </span>
+                {msg.sender === 'user' && USER_AVATAR}
+              </div>
+            ))}
+            {isStreaming && !isAccumulatingJson && (
+              <div className="routinechat-bubble ai">
+                {AI_AVATAR}
+                <span className="routinechat-bubble-content routinechat-streaming">{streamingText}</span>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+          {/* Routine preview & import prompt, only if valid routine exists */}
+          {importPrompt && hasValidRoutine && (
+            <div className="routinechat-import-prompt">
+              {renderRoutinePreview(pendingRoutine, t)}
+              <div className="routinechat-import-btns">
+                <button className="button-pop routinechat-send-btn import-yes" onClick={handleImport}>{t('routineChat.importYes', 'Yes, import')}</button>
+                <button className="button-pop routinechat-send-btn import-no" onClick={() => setImportPrompt(false)}>{t('routineChat.importNo', 'No')}</button>
+              </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
-        </div>
-        {/* Routine preview & import prompt, only if valid routine exists */}
-        {importPrompt && hasValidRoutine && (
-          <div className="routinechat-import-prompt">
-            {renderRoutinePreview(pendingRoutine, t)}
-            <div className="routinechat-import-btns">
-              <button className="button-pop routinechat-send-btn import-yes" onClick={handleImport}>{t('routineChat.importYes', 'Yes, import')}</button>
-              <button className="button-pop routinechat-send-btn import-no" onClick={() => setImportPrompt(false)}>{t('routineChat.importNo', 'No')}</button>
-            </div>
-          </div>
-        )}
         {showToast && (
           <div className="routinechat-toast">{t('routineChat.toastSuccess', 'Routine imported successfully!')}</div>
         )}
-        <div className="routinechat-input-row">
-          <input
-            className="routinechat-input"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => (e.key === 'Enter' && !isStreaming) && sendMessage()}
-            placeholder={t('routineChat.inputPlaceholder', 'Describe your routine needs...')}
-            disabled={loading || isStreaming}
-            aria-label={t('routineChat.inputPlaceholder', 'Describe your routine needs...')}
-          />
-          <button
-            className="routinechat-send-btn button-pop"
-            onClick={sendMessage}
-            disabled={loading || isStreaming || !input.trim()}
-            aria-label={t('routineChat.send', 'Send')}
-          >
-            {loading ? (
-              <span className="routinechat-spinner"></span>
-            ) : (
-              <>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 17.5L17.5 10L2.5 2.5V8.33333L13.3333 10L2.5 11.6667V17.5Z" fill="currentColor"/></svg>
-                <span style={{ fontWeight: 600, marginLeft: 4 }}>{t('routineChat.send', 'Send')}</span>
-              </>
-            )}
-          </button>
+          <div className="routinechat-input-row">
+            <input
+              className="routinechat-input"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => (e.key === 'Enter' && !isStreaming) && sendMessage()}
+              placeholder={t('routineChat.inputPlaceholder', 'Describe your routine needs...')}
+              disabled={loading || isStreaming}
+              aria-label={t('routineChat.inputPlaceholder', 'Describe your routine needs...')}
+            />
+            <button
+              className="routinechat-send-btn button-pop"
+              onClick={sendMessage}
+              disabled={loading || isStreaming || !input.trim()}
+              aria-label={t('routineChat.send', 'Send')}
+            >
+              {loading ? (
+                <span className="routinechat-spinner"></span>
+              ) : (
+                <>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 17.5L17.5 10L2.5 2.5V8.33333L13.3333 10L2.5 11.6667V17.5Z" fill="currentColor"/></svg>
+                  <span style={{ fontWeight: 600, marginLeft: 4 }}>{t('routineChat.send', 'Send')}</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </PageLoader>
   );
 };
 

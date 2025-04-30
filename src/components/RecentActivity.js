@@ -4,7 +4,7 @@ import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
 import useUserProfile from '../hooks/useUserProfile';
 
-export default function RecentActivity() {
+export default function RecentActivity({ onLoaded }) {
   const { user } = useUserProfile();
   const { t } = useTranslation();
   const [sessions, setSessions] = useState([]);
@@ -24,6 +24,12 @@ export default function RecentActivity() {
     }
     fetchSessions();
   }, [user?.uid]);
+
+  useEffect(() => {
+    if (!loading && onLoaded) {
+      onLoaded();
+    }
+  }, [loading, onLoaded]);
 
   function formatDuration(mins, t) {
     if (mins >= 60) {

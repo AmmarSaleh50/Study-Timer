@@ -307,7 +307,6 @@ button:disabled:hover, .home-btn:disabled:hover, .start-button:disabled:hover, .
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   color: var(--text-color);
 }
-
 /* -------------------- MODALS -------------------- */
 .modal {
   background: var(--modal-bg);
@@ -659,7 +658,7 @@ input[type="color"]::-webkit-color-swatch {
 
 /* -------------------- ANIMATIONS -------------------- */
 h1, .heading-animate {
-  animation: fadeSlideIn 0.7s cubic-bezier(.4,1.6,.4,1) both;
+  animation: fadeSlideIn 0.01s cubic-bezier(.4,1.2,.6,1) both;
 }
 
 .app-container.card-animate, .home-container.card-animate, .routines-container.card-animate {

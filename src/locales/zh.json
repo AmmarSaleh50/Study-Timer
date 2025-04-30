@@ -38,17 +38,21 @@
     "copy_invite_link": "复制邀请链接",
     "account_settings": "账户设置",
     "reset_password": "重置密码",
-    "logout": "登出",
+    "logout": "退出登录",
     "delete_account": "删除账户",
     "delete_confirm": "您确定要删除您的账户吗？此操作无法撤销。",
     "confirm_delete": "是的，删除我的账户",
     "streak": "连续天数",
     "total_minutes": "总分钟数",
-    "routines_completed": "已完成例程",
+    "routines_completed": "完成的例程",
     "badges": "徽章",
     "first_routine": "第一个例程",
     "seven_day_streak": "7天连续",
-    "theme": "主题",
+    "theme": {
+      "label": "主题",
+      "default": "经典紫色",
+      "golden": "金色 & 黑色"
+    },
     "defaultName": "学生"
   },
   "home": {

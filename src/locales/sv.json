@@ -11,13 +11,17 @@
     "delete_account": "Ta bort konto",
     "delete_confirm": "Är du säker på att du vill ta bort ditt konto? Detta kan inte ångras.",
     "confirm_delete": "Ja, ta bort mitt konto",
-    "streak": "Streak",
+    "streak": "Serie",
     "total_minutes": "Totala minuter",
     "routines_completed": "Avslutade rutiner",
-    "badges": "Utmärkelser",
-    "first_routine": "Första rutin",
-    "seven_day_streak": "7-dagars streak",
-    "theme": "Tema",
+    "badges": "Badges",
+    "first_routine": "Första rutinen",
+    "seven_day_streak": "7-dagars serie",
+    "theme": {
+      "label": "Tema",
+      "default": "Klassisk lila",
+      "golden": "Guld & Svart"
+    },
     "defaultName": "Student"
   },
   "home": {

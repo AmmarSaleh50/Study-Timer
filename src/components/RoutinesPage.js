@@ -7,6 +7,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { generateTaskId } from '../utils';
 import { useTranslation } from 'react-i18next';
 import useUserProfile from '../hooks/useUserProfile';
+import PageLoader from './PageLoader';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -59,6 +60,14 @@ const RoutinesPage = () => {
   const [taskOverlapWarning, setTaskOverlapWarning] = useState(null);
   const [showPushOptions, setShowPushOptions] = useState(false);
   const [showPullOptions, setShowPullOptions] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [routinesLoaded, setRoutinesLoaded] = useState(false);
+
+  useEffect(() => {
+    if (user && routinesLoaded) {
+      setLoading(false);
+    }
+  }, [user, routinesLoaded]);
 
   useEffect(() => {
     if (user) setUserId(user.uid);
@@ -74,6 +83,7 @@ const RoutinesPage = () => {
         data[docSnap.id] = (docSnap.data().tasks || []).map(t => ({ ...t, id: t.id || generateTaskId() }));
       });
       setRoutines(data);
+      setRoutinesLoaded(true);
     });
     // --- Listen for templates changes ---
     const templatesRef = collection(db, 'users', userId, 'templates');
@@ -349,12 +359,12 @@ const RoutinesPage = () => {
   };
 
   return (
-    <>
+    <PageLoader loading={loading}>
       <div id="dnd-portal-root"></div>
       <div className="routines-main-bg">
         <div className="routines-container">
-          <h1 className="routines-title heading-animate fade-slide-in">{t('routines.title')}</h1>
-          <div className="routine-day-selector card-animate">
+          <h1 className="routines-title">{t('routines.title')}</h1>
+          <div className="routine-day-selector">
             {DAYS.map(day => (
               <button
                 key={day}
@@ -391,10 +401,10 @@ const RoutinesPage = () => {
                           progress = getTaskProgress(task, idx);
                           currentIdx = getCurrentTaskIdx(arr);
                         }
-                        // Animation classes for fade-in and stagger
-                        const fadeClass = `fade-in-task stagger-${(idx % 10) + 1}`;
+                        // Animation classes for stagger
+                        const staggerClass = `stagger-${(idx % 10) + 1}`;
                         return (
-                          <li key={idx} className={fadeClass} style={{ background: currentIdx === idx ? '#29294a' : undefined }}>
+                          <li key={idx} className={staggerClass} style={{ background: currentIdx === idx ? '#29294a' : undefined }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                               <span><b>{task.name}</b> ({task.startTime} - {task.endTime})</span>
                               {currentIdx === idx && progress > 0 && progress < 100 && (
@@ -428,11 +438,11 @@ const RoutinesPage = () => {
                 ) : <div style={{ color: '#bbb', margin: '16px 0', textAlign: 'center' }}>{t('routines.noRoutine')}</div>}
                 <div className="separator"></div>
                 <div className="routine-actions-row">
-                  <button className="cancel-btn routine-btn button-pop button-ripple fade-in-edit-btn" onClick={startEdit}>
+                  <button className="cancel-btn routine-btn button-pop button-ripple" onClick={startEdit}>
                     {t('routines.editRoutine')}
                   </button>
                   {routines[selectedDay] && routines[selectedDay].length > 0 && (
-                    <button className="cancel-btn routine-btn button-pop button-ripple fade-in-edit-btn" onClick={deleteRoutine}>
+                    <button className="cancel-btn routine-btn button-pop button-ripple" onClick={deleteRoutine}>
                       {t('routines.deleteRoutine')}
                     </button>
                   )}
@@ -717,7 +727,7 @@ const RoutinesPage = () => {
         </div>
       </div>
       )}
-    </>
+    </PageLoader>
   );
 };
 

@@ -17,7 +17,11 @@
     "badges": "Abzeichen",
     "first_routine": "Erste Routine",
     "seven_day_streak": "7-Tage-Serie",
-    "theme": "Farbeschema",
+    "theme": {
+      "label": "Farbeschema",
+      "default": "Klassisch Lila",
+      "golden": "Gold & Schwarz"
+    },
     "defaultName": "Student"
   },
   "home": {

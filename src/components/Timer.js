@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
-import '../styles/RoutinesPage.css';
 import '../styles/Timer.css';
+import '../styles/animations.css';
 
 import { db } from "../firebase";
 import {
@@ -23,6 +23,7 @@ import FloatingLabelInput from './FloatingLabelInput';
 import FloatingMusicPlayer from './FloatingMusicPlayer';
 import { useTranslation } from 'react-i18next';
 import useUserProfile from '../hooks/useUserProfile';
+import PageLoader from './PageLoader';
 
 /* ============================================================================  
    Helper Functions  
@@ -86,7 +87,7 @@ const SPOTIFY_EMBED_URL = "https://open.spotify.com/embed/playlist/37i9dQZF1DXc8
 function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume, t, i18n }) {
   const [showSpotify] = useState(false);
   return (
-    <div className="timer-screen card-animate">
+    <div className="timer-screen">
       <h2>{t('dashboard.currentlyStudying')} {subject}</h2>
       <div className="big-timer">{formatTime(elapsedSeconds, t, i18n)}</div>
       <div className="timer-controls">
@@ -249,7 +250,7 @@ function WeeklyStatsCard({ sessionsData, topics, sessions, t, i18n }) {
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
-                className={`tab-button ${viewMode === mode ? 'active' : ''} button-pop button-ripple`}
+                className={`tab-button ${viewMode === mode ? 'active' : ''} button-pop`}
               >
                 {t(`dashboard.${mode.charAt(0).toUpperCase() + mode.slice(1)}`)}
               </button>
@@ -305,11 +306,12 @@ function WeeklyStatsCard({ sessionsData, topics, sessions, t, i18n }) {
    Timer Component  
    - Main component handling timer, sessions, topics, user actions and rendering.  
 ============================================================================ */
-function Timer() {
-  const { user } = useUserProfile();
+function Timer(props) {
+  const { user, username } = useUserProfile();
   const { t, i18n } = useTranslation();
-  // Timer and session related states.
+  const [loading, setLoading] = useState(true);
   const [topics, setTopics] = useState([]);
+  const [topicsFetched, setTopicsFetched] = useState(false);
   const [newTopic, setNewTopic] = useState('');
   const [newTopicColor, setNewTopicColor] = useState('var(--accent-color)');
   const [subject, setSubject] = useState('');
@@ -417,9 +419,13 @@ function Timer() {
     const fetchTopics = async () => {
       if (!canRead()) {
         alert(t('dashboard.dailyFirestoreReadLimitReached'));
+        setTopicsFetched(true);
         return;
       }
-      if (!user?.uid) return;
+      if (!user?.uid) {
+        setTopicsFetched(true);
+        return;
+      }
       const userDocRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userDocRef);
       recordRead();
@@ -427,6 +433,7 @@ function Timer() {
       if (userData?.topics) {
         setTopics(userData.topics);
       }
+      setTopicsFetched(true);
     };
     fetchTopics();
   }, [user?.uid, t]); // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -788,33 +795,43 @@ function Timer() {
 
   /* --------------------- Render Logic ---------------------- */
 
+  // Set loading to false when topics have been fetched
+  useEffect(() => {
+    if (user && topicsFetched) {
+      setLoading(false);
+    }
+  }, [user, topicsFetched]);
+
   // If timer is active, show the TimerScreen.
   if (showTimerScreen) {
     return (
-      <div className="dashboard-main-bg fade-slide-in">
-        <div className="app-container card-animate">
-          <TimerScreen
-            subject={subject}
-            elapsedSeconds={elapsedSeconds}
-            formatTime={(seconds) => formatTime(seconds)}
-            stopTimer={stopTimer}
-            isPaused={isPaused}
-            onPause={handlePause}
-            onResume={handleResume}
-            t={t}
-            i18n={i18n}
-          />
-          <FloatingMusicPlayer />
+      <PageLoader loading={loading}>
+        <div className="timer-main-bg">
+          <div className="app-container">
+            <TimerScreen
+              subject={subject}
+              elapsedSeconds={elapsedSeconds}
+              formatTime={(seconds) => formatTime(seconds)}
+              stopTimer={stopTimer}
+              isPaused={isPaused}
+              onPause={handlePause}
+              onResume={handleResume}
+              t={t}
+              i18n={i18n}
+            />
+            <FloatingMusicPlayer />
+          </div>
         </div>
-      </div>
+      </PageLoader>
     );
   }
 
   return (
-    <div className="dashboard-main-bg fade-slide-in">
-      <div className="app-container card-animate">
-        <div style={{ fontFamily: 'Arial' }}>
-          <h1 className="routines-title heading-animate">{t('dashboard.studyTimer')}</h1>
+    <PageLoader loading={loading}>
+      <div className="timer-main-bg ">
+        <div className="app-container ">
+          <div style={{ fontFamily: 'Arial' }}>
+            <h1 className="routines-title heading-animate">{t('dashboard.studyTimer')}</h1>
 
           {/* Add New Topic Section */}
           <div className="add-topic-inline-row" style={{ display: 'flex', alignItems: 'stretch', width: '100%', gap: 0 }}>
@@ -854,7 +871,7 @@ function Timer() {
 
           {/* Select Active Topic */}
           {topics.length > 0 && (
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '20px' }} className="">
               <div className="pick-course-label">{t('dashboard.pickCourseToStudy')}</div>
               <div className="topics-container">
                 {topics.map(topic => {
@@ -925,7 +942,7 @@ function Timer() {
           )}
 
           {errorMessage && (
-            <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>
+            <div style={{ color: 'red', fontSize: '14px', marginTop: '5px' }} className="">
               {errorMessage}
             </div>
           )}
@@ -953,7 +970,7 @@ function Timer() {
           <hr className="separator" />
 
           {/* Weekly Stats Card */}
-          <div style={{ marginTop: '20px' }}>
+          <div style={{ marginTop: '20px' }} className="">
             <WeeklyStatsCard
               sessionsData={currentWeekSessions}
               topics={topics}
@@ -991,7 +1008,9 @@ function Timer() {
         </div>
       </div>
     </div>
+    </PageLoader>
   );
 }
 
 export default Timer;
+

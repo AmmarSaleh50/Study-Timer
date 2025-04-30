@@ -17,7 +17,11 @@
     "badges": "Merke",
     "first_routine": "Første rutine",
     "seven_day_streak": "7-dagars streak",
-    "theme": "Tema",
+    "theme": {
+      "label": "Tema",
+      "default": "Klassisk lilla",
+      "golden": "Gull & Svart"
+    },
     "defaultName": "Student"
   },
   "home": {

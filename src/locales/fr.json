@@ -38,9 +38,9 @@
     "copy_invite_link": "Copier le lien d'invitation",
     "account_settings": "Paramètres du compte",
     "reset_password": "Réinitialiser le mot de passe",
-    "logout": "Se déconnecter",
+    "logout": "Déconnexion",
     "delete_account": "Supprimer le compte",
-    "delete_confirm": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+    "delete_confirm": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action ne peut pas être annulée.",
     "confirm_delete": "Oui, supprimer mon compte",
     "streak": "Série",
     "total_minutes": "Minutes totales",
@@ -48,7 +48,11 @@
     "badges": "Badges",
     "first_routine": "Première routine",
     "seven_day_streak": "Série de 7 jours",
-    "theme": "Thème",
+    "theme": {
+      "label": "Thème",
+      "default": "Violet classique",
+      "golden": "Or & Noir"
+    },
     "defaultName": "Étudiant"
   },
   "home": {
