@@ -13,15 +13,9 @@ export default function ProfileCustomization() {
   }, [language, i18n]);
 
   React.useEffect(() => {
+    document.body.classList.remove('golden-theme');
     if (theme === 'golden') {
       document.body.classList.add('golden-theme');
-      document.body.classList.remove('purple-theme');
-    } else if (theme === 'purple') {
-      document.body.classList.add('purple-theme');
-      document.body.classList.remove('golden-theme');
-    } else {
-      document.body.classList.remove('golden-theme');
-      document.body.classList.remove('purple-theme');
     }
   }, [theme]);
 

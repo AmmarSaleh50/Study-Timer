@@ -617,7 +617,15 @@ function Timer(props) {
     if (!timerData) return;
     const start = new Date(timerData.startTime);
     const end = new Date();
-    const duration = Math.floor((end - start) / 1000);
+    // Subtract totalPausedDuration from total time
+    const paused = timerData.totalPausedDuration || 0;
+    let duration = Math.floor((end - start) / 1000 - paused);
+    if (timerData.isPaused && timerData.lastPausedAt) {
+      // If timer is currently paused, add the last paused period
+      const lastPausedAt = new Date(timerData.lastPausedAt);
+      duration = Math.floor((lastPausedAt - start) / 1000 - paused);
+    }
+    if (duration < 0) duration = 0;
     const sessionsRef = collection(db, "users", user.uid, "sessions");
     await addDoc(sessionsRef, {
       subject: timerData.subject,
