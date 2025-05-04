@@ -7,15 +7,17 @@
   align-items: center;
   padding-bottom: 84px;
   box-sizing: border-box;
-
+  background: transparent;
 }
 
 .app-container {
-  background: var(--secondary-bg);
+  background: transparent;
   border-radius: 18px;
   box-shadow: 0 2px 8px var(--shadow-color, #0002);
   margin: 0 auto;
   padding: 18px 18px 10px 18px;
+  position: relative;
+  z-index: 1;
 }
 
 .heading-animate {
@@ -64,13 +66,15 @@
 }
 
 .homepage-card {
-  background: var(--card-bg);
+  background: transparent;
   border-radius: 14px;
   padding: 18px 18px 10px 18px;
   margin: 0 0 22px 0;
   box-shadow: 0 2px 16px var(--shadow-color, #0002);
   text-align: center;
   border: 1px solid var(--card-border);
+  position: relative;
+  z-index: 1;
 }
 
 /* Streak styles */

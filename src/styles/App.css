@@ -44,6 +44,11 @@
   --routinechat-preview-title: #fff700;
   --routinechat-preview-day: #fff700;
   --separator-color: var(--card-border);
+  --dot-bg: rgba(255,255,255,0.13);
+  --pattern-c1: #232234;
+  --pattern-c2: #675fc0;
+  --pattern-c3: #18182b;
+  --pattern-s: 200px;
 }
 
 .golden-theme {
@@ -95,10 +100,18 @@
   --routinechat-preview-title: #fff700;
   --routinechat-preview-day: #fff700;
   --separator-color: var(--card-border);
+  --dot-bg: rgba(255, 215, 0, 0.13);
+  --pattern-c1: #131313;
+  --pattern-c2: #ffd700;
+  --pattern-c3: #191919;
+  --pattern-s: 200px;
 }
 
-html, body {
-  background: var(--primary-bg);
+html, body, #root {
+  background-color: var(--primary-bg, #232234) !important;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.13) 2px, transparent 0) !important;
+  background-size: 30px 30px !important;
+  background-position: -5px -5px !important;
   color: var(--text-color);
   min-height: 100vh;
   overflow-x: hidden;
@@ -110,6 +123,13 @@ html, body {
 body {
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
+}
+
+body.geometric-bg-active html,
+body.geometric-bg-active body,
+body.geometric-bg-active #root {
+  background: none !important;
+  background-image: none !important;
 }
 
 /* -------------------- NAVIGATION -------------------- */

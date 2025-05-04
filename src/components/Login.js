@@ -125,7 +125,7 @@ export default function Login() {
             required
           />
           <FloatingLabelInput
-            type={showPassword ? 'text' : 'password'}
+            type="password"
             label={t('login.passwordLabel')}
             value={password}
             onChange={e => setPassword(e.target.value)}

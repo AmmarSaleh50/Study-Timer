@@ -12,7 +12,7 @@
 }
 
 .app-container {
-  background: var(--card-bg);
+  background: transparent;
   color: var(--text-color);
   border: 2px solid var(--card-border);
   border-radius: 16px;
@@ -21,6 +21,8 @@
   margin: 0 auto;
   max-width: 700px;
   width: 95vw;
+  position: relative;
+  z-index: 1;
 }
 
 .timer-screen {

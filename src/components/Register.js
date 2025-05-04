@@ -60,7 +60,7 @@ export default function Register() {
             required
           />
           <FloatingLabelInput
-            type={showPassword ? 'text' : 'password'}
+            type="password"
             label={t('register.passwordLabel')}
             value={password}
             onChange={e => setPassword(e.target.value)}

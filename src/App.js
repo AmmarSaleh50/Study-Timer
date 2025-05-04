@@ -24,6 +24,7 @@ import BottomNavBar from './components/BottomNavBar';
 import Onboarding from './components/Onboarding';
 import { useTranslation } from 'react-i18next';
 import { UserProfileProvider } from './context/UserProfileContext';
+import InteractiveDotBackground from './components/InteractiveDotBackground';
 
 function AppInner() {
   const { t, i18n } = useTranslation();
@@ -158,6 +159,23 @@ function AppInner() {
     setTheme((prev) => (prev === 'golden' ? 'default' : 'golden'));
   };
 
+  // Background preset
+  const [bgPreset, setBgPreset] = React.useState(() => localStorage.getItem('bg-preset') || 'dots');
+  React.useEffect(() => {
+    const handler = () => setBgPreset(localStorage.getItem('bg-preset') || 'dots');
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
+
+  // Add this effect to toggle the geometric-bg-active class
+  React.useEffect(() => {
+    if (bgPreset === 'none') {
+      document.body.classList.add('geometric-bg-active');
+    } else {
+      document.body.classList.remove('geometric-bg-active');
+    }
+  }, [bgPreset]);
+
   if (isAuth && showOnboarding) {
     return <Onboarding onFinish={() => {
       setShowOnboarding(false);
@@ -182,6 +200,7 @@ function AppInner() {
 
   return (
     <div>
+      {bgPreset === 'dots' && <InteractiveDotBackground />}
       {/* Removed Theme Toggle Button from Top Right */}
       {showUpdate && (
         <div style={{

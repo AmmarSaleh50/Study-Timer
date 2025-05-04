@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import '../styles/FloatingLabelInput.css';
 
 /**
@@ -30,9 +30,20 @@ export default function FloatingLabelInput({
   const [iconActive, setIconActive] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Animate icon on click
+  // Animate icon on click and preserve caret position
   const handleIconClick = (e) => {
-    setShowPassword((prev) => !prev);
+    if (inputRef.current) {
+      const { selectionStart, selectionEnd } = inputRef.current;
+      setShowPassword((prev) => !prev);
+      setTimeout(() => {
+        if (inputRef.current && typeof selectionStart === 'number' && typeof selectionEnd === 'number') {
+          inputRef.current.setSelectionRange(selectionStart, selectionEnd);
+          inputRef.current.focus();
+        }
+      }, 0);
+    } else {
+      setShowPassword((prev) => !prev);
+    }
     if (onIconClick) onIconClick(e);
     setIconActive(true);
     setTimeout(() => setIconActive(false), 230); // match CSS transition
@@ -40,30 +51,47 @@ export default function FloatingLabelInput({
 
   // Determine if this is a password field
   const isPassword = type === 'password';
-  // Always render as password, but toggle text security with CSS
-  const inputType = isPassword ? 'password' : type;
-  const inputStyle = isPassword && showPassword ? { WebkitTextSecurity: 'none', MozTextSecurity: 'none', textSecurity: 'none' } : {};
+  // Toggle input type for password visibility
+  const inputType = isPassword && showPassword ? 'text' : type;
+  const inputStyle = {};
+
+  // Ref for caret position preservation
+  const inputRef = useRef(null);
 
   // Adjust padding if rightElement or icon
   const inputPaddingRight = rightElement ? 50 : icon ? 44 : undefined;
 
+  // Generate unique id for accessibility
+  const inputId = name || `floating-input-${label.replace(/\s+/g, '-').toLowerCase()}`;
+
+  const hasValue = value && value.length > 0;
+
   return (
-    <div className={`floating-label-input${focused || value ? ' focused' : ''}${icon ? ' with-icon' : ''}${rightElement ? ' with-right-element' : ''}`}
-         style={{ position: 'relative' }}>
+    <div className={`input-group${icon ? ' with-icon' : ''}${rightElement ? ' with-right-element' : ''}`} style={{ position: 'relative', width: '100%' }}>
       <input
+        ref={inputRef}
+        id={inputId}
+        required
         type={inputType}
         value={value}
         onChange={onChange}
         name={name}
         autoComplete={autoComplete}
+        className={`input${hasValue ? ' has-value' : ''}`}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         style={{ ...inputStyle, paddingRight: inputPaddingRight }}
         {...rest}
       />
-      <label>{label}</label>
+      <label htmlFor={inputId} className={`user-label${hasValue ? ' label-float' : ''}`}>{label}</label>
       {icon && isPassword && (
-        <span className={`input-icon${iconActive ? ' icon-bounce' : ''}`} onClick={handleIconClick} tabIndex={0} role="button">
+        <span
+          className={`input-icon${iconActive ? ' icon-bounce' : ''}`}
+          onClick={handleIconClick}
+          onMouseDown={e => e.preventDefault()}
+          tabIndex={0}
+          role="button"
+        >
           {showPassword ? '🙈' : '👁️'}
         </span>
       )}

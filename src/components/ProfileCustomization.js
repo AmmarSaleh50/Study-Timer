@@ -2,9 +2,22 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import useUserProfile from '../hooks/useUserProfile';
 
+const BG_PRESETS = [
+  { value: 'none', label: 'None' },
+  { value: 'dots', label: 'Interactive Dots' },
+];
+
 export default function ProfileCustomization() {
   const { theme, language, updateTheme, updateLanguage } = useUserProfile();
   const { t, i18n } = useTranslation();
+
+  // Background preset state
+  const [bgPreset, setBgPreset] = React.useState(() => localStorage.getItem('bg-preset') || 'none');
+  const handleBgPresetChange = (e) => {
+    setBgPreset(e.target.value);
+    localStorage.setItem('bg-preset', e.target.value);
+    window.dispatchEvent(new Event('storage'));
+  };
 
   React.useEffect(() => {
     if (language && i18n.language !== language) {
@@ -55,11 +68,20 @@ export default function ProfileCustomization() {
           <option value="sv">Svenska</option>
         </select>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
         <span style={{ color: 'var(--muted-text)', fontSize: 15 }}>{t('profile.theme.label')}</span>
         <select value={theme} onChange={handleThemeChange} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--drawer-bg)', color: 'var(--button-text)', fontSize: 15 }}>
-          <option value="default">{t('profile.theme.default')}</option>
-          <option value="golden">{t('profile.theme.golden')}</option>
+          <option value="default">{t('profile.theme.default') || 'Light'}</option>
+
+          <option value="golden">{t('profile.theme.golden') || 'Golden'}</option>
+        </select>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <span style={{ color: 'var(--muted-text)', fontSize: 15 }}>Background</span>
+        <select value={bgPreset} onChange={handleBgPresetChange} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--drawer-bg)', color: 'var(--button-text)', fontSize: 15 }}>
+          {BG_PRESETS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
       </div>
     </div>
