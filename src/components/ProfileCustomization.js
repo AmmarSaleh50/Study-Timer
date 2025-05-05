@@ -26,9 +26,11 @@ export default function ProfileCustomization() {
   }, [language, i18n]);
 
   React.useEffect(() => {
-    document.body.classList.remove('golden-theme');
+    document.body.classList.remove('golden-theme', 'light-theme');
     if (theme === 'golden') {
       document.body.classList.add('golden-theme');
+    } else if (theme === 'light') {
+      document.body.classList.add('light-theme');
     }
   }, [theme]);
 
@@ -72,7 +74,7 @@ export default function ProfileCustomization() {
         <span style={{ color: 'var(--muted-text)', fontSize: 15 }}>{t('profile.theme.label')}</span>
         <select value={theme} onChange={handleThemeChange} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--drawer-bg)', color: 'var(--button-text)', fontSize: 15 }}>
           <option value="default">{t('profile.theme.default') || 'Light'}</option>
-
+          <option value="light">Light Mode</option>
           <option value="golden">{t('profile.theme.golden') || 'Golden'}</option>
         </select>
       </div>

@@ -8,6 +8,8 @@
   justify-content: flex-start;
   box-sizing: border-box; 
   padding-top: 90px; /* Move the profile page down */
+  padding-bottom: 80px; /* Add padding at the bottom for navbar */
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
 .profile-container {
@@ -25,6 +27,8 @@
   align-items: center;
   position: relative;
   z-index: 1;
+  max-height: none; /* Remove any max-height constraints */
+  overflow-y: visible; /* Make content visible beyond container */
 }
 
 .profile-avatar {

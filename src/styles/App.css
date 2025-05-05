@@ -107,6 +107,62 @@
   --pattern-s: 200px;
 }
 
+.light-theme {
+  --primary-bg: #fff;
+  --secondary-bg: #f7f7f7;
+  --text-color: #232234;
+  --accent-color: #3b82f6;
+  --button-bg: #3b82f6;
+  --button-hover-bg: #2563eb;
+  --button-text: #fff;
+  --card-bg: #fff;
+  --card-border: #e5e7eb;
+  --button-disabled-bg: #e5e7eb;
+  --button-disabled-text: #bdbdbd;
+  --danger-bg: #ef4444;
+  --danger-text: #fff;
+  --muted-text: #6b7280;
+  --modal-bg: #f7f7f7;
+  --modal-cancel-bg: #e5e7eb;
+  --modal-cancel-text: #232234;
+  --reset-bg: #3b82f622;
+  --reset-hover-bg: #3b82f6;
+  --drawer-bg: #3b82f6;
+  --drawer-hover-bg: #f0f0f0;
+  --routine-popup-bg: #3b82f6;
+  --routine-popup-hover-bg: #2563eb;
+  --tab-indicator-bg: var(--accent-color);
+  --tab-selected-text: var(--button-text);
+  --tab-slider-bg: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --tab-shadow: 0 1px 4px 0 color-mix(in srgb, var(--accent-color) 18%, transparent);
+  --tab-unselected-text: var(--muted-text);
+  --profile-pfp-text: #fff;
+  --routine-day-active-bg: var(--accent-color);
+  --routine-day-active-border: #3b82f6;
+  --routine-day-active-shadow: #3b82f6;
+  --routine-card-border: #3b82f6;
+  --chat-card-bg: var(--card-bg);
+  --routinechat-header-color: #3b82f6;
+  --routinechat-header-accent: #3b82f6;
+  --routinechat-bubble-bg: #3b82f6;
+  --routinechat-bubble-text: #fff;
+  --routinechat-bubble-ai-bg: #f0f4f8;
+  --routinechat-bubble-ai-text: #232234;
+  --routinechat-send-btn-bg: var(--button-bg);
+  --routinechat-send-btn-text: var(--button-text);
+  --routinechat-send-btn-active-bg: var(--button-hover-bg);
+  --routinechat-input-bg: var(--card-bg);
+  --routinechat-input-text: var(--text-color);
+  --routinechat-preview-title: #3b82f6;
+  --routinechat-preview-day: #3b82f6;
+  --separator-color: var(--card-border);
+  --dot-bg: rgba(59, 130, 246, 0.08);
+  --pattern-c1: #fff;
+  --pattern-c2: #3b82f6;
+  --pattern-c3: #f7f7f7;
+  --pattern-s: 200px;
+}
+
 html, body, #root {
   background-color: var(--primary-bg, #232234) !important;
   background-image: radial-gradient(rgba(255, 255, 255, 0.13) 2px, transparent 0) !important;
@@ -327,6 +383,7 @@ button:disabled:hover, .home-btn:disabled:hover, .start-button:disabled:hover, .
   box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   color: var(--text-color);
 }
+
 /* -------------------- MODALS -------------------- */
 .modal {
   background: var(--modal-bg);
@@ -566,6 +623,7 @@ input[type="color"]::-webkit-color-swatch {
   display: flex;
   width: fit-content;
   margin: 0 auto;
+  margin-top: 10px;
   background: var(--tab-slider-bg);
   box-shadow: var(--tab-shadow);
   border-radius: 10px;

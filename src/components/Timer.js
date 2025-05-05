@@ -988,9 +988,6 @@ function Timer(props) {
             />
           </div>
 
-          {/* Separator for Dashboard section */}
-          <div className="separator"></div>
-
           {/* Reset Data Section */}
           <div className="reset-button-container">
           <button className="cancel-btn button-pop button-ripple" style={{ width: '100%', maxWidth: 280}} onClick={confirmReset}>
