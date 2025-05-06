@@ -19,7 +19,7 @@ import './styles/RoutineRunner.css';
 import './styles/Onboarding.css';
 import './styles/ProfilePage.css';
 import { db } from "./firebase";
-import { setDoc, doc, getDoc} from "firebase/firestore";
+import { setDoc, doc} from "firebase/firestore";
 import BottomNavBar from './components/BottomNavBar';
 import Onboarding from './components/Onboarding';
 import { useTranslation } from 'react-i18next';
@@ -54,7 +54,7 @@ function AppInner() {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
-      const userId = user.uid;      const storedRoutines = localStorage.getItem('routines');
+      const storedRoutines = localStorage.getItem('routines');
       if (storedRoutines) {
         const routines = JSON.parse(storedRoutines);
         const newRoutines = {};
@@ -74,12 +74,7 @@ function AppInner() {
   };
 
   const [routines, setRoutines] = React.useState({});
-  const [userId, setUserId] = React.useState(null);
 
-  React.useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) setUserId(user.uid);
-  }, []);
 
   function normalizeRoutineObject(routineObj) {
     const DAYS = [
@@ -111,6 +106,8 @@ function AppInner() {
 
   // Import handler copied from RoutinesPage
   const handleImportRoutine = async (routineObj) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user && user.uid;
     if (!userId || !routineObj) return;
     let daysObj = routineObj.weekly_study_routine || routineObj;
     daysObj = normalizeRoutineObject(daysObj);
@@ -142,7 +139,7 @@ function AppInner() {
   };
 
   // Theme toggle logic
-  const [theme, setTheme] = useState(() => {
+  const [theme] = useState(() => {
     return localStorage.getItem('theme') || 'default';
   });
 
@@ -156,9 +153,6 @@ function AppInner() {
     }
   }, [theme]);
 
-  const handleThemeToggle = () => {
-    setTheme((prev) => (prev === 'golden' ? 'default' : 'golden'));
-  };
 
   // Background preset
   const [bgPreset, setBgPreset] = React.useState(() => localStorage.getItem('bg-preset') || 'dots');
