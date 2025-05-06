@@ -1,11 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
-import '../styles/HomePage.css';
-import '../styles/animations.css';
-import TodayRoutinePreview from './TodayRoutinePreview';
-import PageLoader from './PageLoader';
+import useUserProfile from '../../hooks/useUserProfile';
+import '../../styles/HomePage.css';
+import '../../styles/animations.css';
+import TodayRoutinePreview from '../routines/TodayRoutinePreview';
+import PageLoader from '../../components/PageLoader';
 import RecentActivity from './RecentActivity';
 
 export default function HomePage() {

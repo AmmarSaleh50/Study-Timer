@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { SPOTIFY_CLIENT_ID, SPOTIFY_REDIRECT_URI, SPOTIFY_SCOPES } from '../spotifyConfig';
-import { db } from '../firebase';
+import { SPOTIFY_CLIENT_ID, SPOTIFY_REDIRECT_URI, SPOTIFY_SCOPES } from '../../spotifyConfig';
+import { db } from '../../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import SpotifyPlayerControls from './SpotifyPlayerControls';
 import Select from 'react-select';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
+import useUserProfile from '../../hooks/useUserProfile';
 
 // Simple music note icon SVG for the button
 const MusicNoteIcon = (

@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/ProfilePage.css';
-import '../styles/animations.css';
+import '../../styles/ProfilePage.css';
+import '../../styles/animations.css';
 import ProfileAvatarEditor from './ProfileAvatarEditor';
 import ProfileStatsCard from './ProfileStatsCard';
 import ProfileAccountSettings from './ProfileAccountSettings';
 import ProfileCustomization from './ProfileCustomization';
 import ProfileUsernameEditor from './ProfileUsernameEditor';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
-import PageLoader from './PageLoader';
-import { auth } from '../firebase';
+import useUserProfile from '../../hooks/useUserProfile';
+import PageLoader from '../../components/PageLoader';
+import { auth } from '../../firebase';
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
@@ -80,7 +80,7 @@ const [statsLoaded, setStatsLoaded] = useState(false);
 
   function handleDeleteAccount() {
     import('firebase/auth').then(({ deleteUser }) => {
-      const { auth } = require('../firebase');
+      const { auth } = require('../../firebase');
       if (auth.currentUser) {
         const uid = auth.currentUser.uid;
         // Delete Firestore data first (entire user document and subcollections)
@@ -110,7 +110,7 @@ const [statsLoaded, setStatsLoaded] = useState(false);
       return;
     }
     import('firebase/auth').then(({ sendPasswordResetEmail }) => {
-      const { auth } = require('../firebase');
+      const { auth } = require('../../firebase');
       sendPasswordResetEmail(auth, currentUser.email)
         .then(() => {
           showToast('Password reset email sent! Check your inbox.');

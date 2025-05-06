@@ -2,7 +2,7 @@
 // Prevents exceeding Firestore free daily quota by tracking reads/writes in localStorage.
 
 const READ_LIMIT = 20000;   // Set below the free daily quota (Spark: 50,000)
-const WRITE_LIMIT = 900;    // Set below the free daily quota (Spark: 20,000)
+const WRITE_LIMIT = 5000;    // Set below the free daily quota (Spark: 20,000)
 
 function getTodayKey() {
   const now = new Date();

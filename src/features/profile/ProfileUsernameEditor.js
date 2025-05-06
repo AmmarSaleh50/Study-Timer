@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import FloatingLabelInput from './FloatingLabelInput';
+import FloatingLabelInput from '../../components/FloatingLabelInput';
 
 export default function ProfileUsernameEditor({ username, onUsernameChange }) {
   const [editing, setEditing] = useState(false);

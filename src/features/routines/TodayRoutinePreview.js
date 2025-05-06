@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
+import useUserProfile from '../../hooks/useUserProfile';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 

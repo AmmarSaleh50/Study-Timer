@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
-import '../styles/Timer.css';
-import '../styles/animations.css';
+import '../../styles/Timer.css';
+import '../../styles/animations.css';
 
-import { db } from "../firebase";
+import { db } from "../../firebase";
 import {
   doc,
   getDoc,
@@ -18,289 +18,27 @@ import {
   serverTimestamp,
   onSnapshot
 } from "firebase/firestore";
-import { canRead, canWrite, recordRead, recordWrite } from '../firestoreQuotaGuard';
-import FloatingLabelInput from './FloatingLabelInput';
-import FloatingMusicPlayer from './FloatingMusicPlayer';
+import { canRead, canWrite, recordRead, recordWrite } from '../../firestoreQuotaGuard';
+import FloatingLabelInput from '../../components/FloatingLabelInput';
+import FloatingMusicPlayer from '../music/FloatingMusicPlayer';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
-import PageLoader from './PageLoader';
+import useUserProfile from '../../hooks/useUserProfile';
+import PageLoader from '../../components/PageLoader';
+import {
+  getWeekKey,
+  getWeekRange,
+  formatSmartDuration,
+  getLocalizedShortWeekdays
+} from '../../utils/timerHelpers';
+import TimerScreen from './TimerScreen';
+import WeeklyStatsCard from './WeeklyStatsCard';
+import TopicTag from './TopicTag';
+import ResetModal from './ResetModal';
 
 /* ============================================================================  
    Helper Functions  
 ============================================================================ */
 
-// Returns a unique key for a given ISO date string based on the week of the year.
-function getWeekKey(isoString) {
-  const date = new Date(isoString);
-  const day = (date.getDay() + 6) % 7;
-  date.setDate(date.getDate() + 4 - day);
-  const year = date.getFullYear();
-  const startOfYear = new Date(year, 0, 1);
-  const weekNumber = Math.ceil(
-    ((date - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7
-  );
-  return `${year}-W${weekNumber}`;
-}
-
-// Returns the Monday and Sunday of the week for a given date.
-function getWeekRange(date) {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  const monday = new Date(d);
-  monday.setDate(d.getDate() + diffToMonday);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  return { monday, sunday };
-}
-
-// Formats a duration (in seconds) smartly as seconds, minutes, or hours + minutes, using localization.
-function formatSmartDuration(seconds, t, i18n) {
-  const isRTL = i18n && i18n.dir && i18n.dir() === 'rtl';
-  if (seconds < 60) return `${seconds}${t ? 's' : ''}`;
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  if (isRTL) {
-    if (hours > 0 && minutes > 0) return `${hours} ${t ? t('time.hour', 'h') : 'h'} ${minutes} ${t ? t('time.minute', 'm') : 'm'}`;
-    if (hours > 0) return `${hours} ${t ? t('time.hour', 'h') : 'h'}`;
-    return `${minutes} ${t ? t('time.minute', 'm') : 'm'}`;
-  } else {
-    if (hours > 0 && minutes > 0) return `${hours} ${t ? t('time.hour', 'h') : 'h'} ${minutes} ${t ? t('time.minute', 'm') : 'm'}`;
-    if (hours > 0) return `${hours} ${t ? t('time.hour', 'h') : 'h'}`;
-    return `${minutes} ${t ? t('time.minute', 'm') : 'm'}`;
-  }
-}
-
-// --- i18n helper for localized weekday short names ---
-const WEEKDAY_KEYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-function getLocalizedShortWeekdays(t) {
-  // Returns [Sun, Mon, ...] using t('dashboard.Mon') etc.
-  return WEEKDAY_KEYS.map((key) => t(`dashboard.${key}`));
-}
-
-/* ============================================================================  
-   TimerScreen Component  
-============================================================================ */
-const SPOTIFY_EMBED_URL = "https://open.spotify.com/embed/playlist/37i9dQZF1DXc8kgYqQLMfH"; // Chill Lofi Study Beats
-
-function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume, t, i18n }) {
-  const [showSpotify] = useState(false);
-  return (
-    <div className="timer-screen">
-      <h2>{t('dashboard.currentlyStudying')} {subject}</h2>
-      <div className="big-timer">{formatTime(elapsedSeconds, t, i18n)}</div>
-      <div className="timer-controls">
-        <button 
-          className={`control-button ${isPaused ? 'resume' : 'pause'} button-pop button-ripple`}
-          onClick={isPaused ? onResume : onPause}
-        >
-          {isPaused ? t('dashboard.resume') : t('dashboard.pause')}
-        </button>
-        <button className="control-button stop button-pop button-ripple" onClick={stopTimer}>
-          {t('dashboard.stop')}
-        </button>
-        {/* Spotify button removed as requested */}
-      </div>
-      {showSpotify && (
-        <div style={{ marginTop: 24, width: '100%', maxWidth: 420 }}>
-          <iframe
-            title={t('dashboard.chillStudyPlaylist')}
-            src={SPOTIFY_EMBED_URL}
-            width="100%"
-            height="80"
-            frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            style={{ borderRadius: 12 }}
-          ></iframe>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ============================================================================  
-   WeeklyStatsCard Component  
-   - Renders tab navigation, Doughnut and Stacked Bar charts based on the view mode.  
-============================================================================ */
-function WeeklyStatsCard({ sessionsData, topics, sessions, t, i18n }) {
-  const { t: t2 } = useTranslation();
-  // Tab view state: 'week', 'today', or 'daily'
-  const [viewMode, setViewMode] = useState("week");
-  const tabs = ["today", "week", "daily"];
-  const tabIndex = tabs.indexOf(viewMode);
-
-  // Prepare display data for different view modes
-  let displayData = {};
-  if (viewMode === "week") {
-    // Week view uses aggregated data passed as sessionsData.
-    displayData = sessionsData;
-  } else if (viewMode === "today") {
-    // Aggregate today's sessions by subject.
-    const todayStr = new Date().toISOString().split("T")[0];
-    sessions.forEach((s) => {
-      if (s.startTime.split("T")[0] === todayStr) {
-        displayData[s.subject] = (displayData[s.subject] || 0) + s.durationSeconds;
-      }
-    });
-  }
-  
-  // Calculate total duration and subject list (for week and today views)
-  const subjects = Object.keys(displayData);
-  const totalDuration = subjects.reduce((sum, subj) => sum + displayData[subj], 0);
-
-  // Doughnut chart data (for 'week' and 'today' views)
-  const doughnutChartData = {
-    labels: subjects,
-    datasets: [
-      {
-        data: subjects.map((subj) => displayData[subj]),
-        backgroundColor: subjects.map((subj) => {
-          const topic = topics.find((t) => t.name === subj);
-          return topic ? topic.color : '#ccc';
-        }),
-        borderWidth: 0
-      }
-    ]
-  };
-
-  const doughnutChartOptions = {
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: false }
-    },
-    maintainAspectRatio: false,
-    responsive: true,
-    cutout: '60%'
-  };
-
-  // Daily view: Prepare data for a stacked bar chart
-  let dailyChartData = null;
-  let dailyChartOptions = null;
-  if (viewMode === "daily") {
-    // Create arrays of ISO day keys and labels for the current week.
-    const { monday, sunday } = getWeekRange(new Date());
-    const dayKeys = [];
-    const dayLabels = [];
-    const currentDate = new Date(monday);
-    const localizedShortWeekdays = getLocalizedShortWeekdays(t2); // [So, Mo, ...] or [Sun, Mon, ...]
-    let weekdayIdx = currentDate.getDay();
-    while (currentDate <= sunday) {
-      const isoDate = currentDate.toISOString().split("T")[0];
-      dayKeys.push(isoDate);
-      // Use localized short weekday name, e.g. 'Mo 8 Jul'
-      const label = `${localizedShortWeekdays[weekdayIdx]} ${currentDate.getDate()}.${currentDate.getMonth()+1}`;
-      dayLabels.push(label);
-      currentDate.setDate(currentDate.getDate() + 1);
-      weekdayIdx = (weekdayIdx + 1) % 7;
-    }
-    
-    // Build datasets: one per topic with durations per day.
-    const datasets = topics.map(topic => {
-      const data = dayKeys.map(dayKey => {
-        let sum = 0;
-        sessions.forEach(s => {
-          if (s.subject === topic.name && s.startTime.startsWith(dayKey)) {
-            sum += s.durationSeconds;
-          }
-        });
-        return sum;
-      });
-      return {
-        label: topic.name,
-        data,
-        backgroundColor: topic.color
-      };
-    });
-    
-    dailyChartData = { labels: dayLabels, datasets };
-    
-    dailyChartOptions = {
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const label = context.dataset.label || '';
-              const value = context.parsed.y;
-              return `${label}: ${formatSmartDuration(value, t2, i18n)}`;
-            }
-          }
-        }
-      },
-      responsive: true,
-      scales: {
-        x: { stacked: true },
-        y: { 
-          stacked: true,
-          ticks: { callback: (value) => formatSmartDuration(value, t2, i18n) }
-        }
-      }
-    };
-  }
-
-  return (
-    <div className="stats-card">
-      <div className="stats-card-header">
-        {/* Tab Navigation */}
-        <div className='tabs-wrapper'>
-          <div className="view-tabs">
-            {tabs.map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`tab-button ${viewMode === mode ? 'active' : ''} button-pop`}
-              >
-                {t(`dashboard.${mode.charAt(0).toUpperCase() + mode.slice(1)}`)}
-              </button>
-            ))}
-            <div
-              className="tab-indicator"
-              style={{ transform: `translateX(${tabIndex * 100}%)` }}
-            />
-          </div>
-        </div> 
-      </div>
-      
-      {viewMode === "daily" ? (
-        // Render Daily Stacked Bar Chart
-        <div className="stats-card-content" style={{ height: "300px" }}>
-          {dailyChartData && (
-            <Bar data={dailyChartData} options={dailyChartOptions} />
-          )}
-        </div>
-      ) : (
-        // Render Doughnut chart and list summary for 'week' and 'today' views.
-        <div className="stats-card-content">
-          {subjects.length > 0 ? (
-            <>
-              <div className="stats-chart" style={{ height: "220px" }}>
-                <Doughnut data={doughnutChartData} options={doughnutChartOptions} />
-              </div>
-              <div className="stats-details">
-                <div className="total-study-time">
-                  {t('dashboard.total')} {formatSmartDuration(totalDuration, t2, i18n)}
-                </div>
-                <ul className="stats-topics">
-                  {subjects.map((subj) => (
-                    <li key={subj} className="topic-line">
-                      <span className="dot" style={{ backgroundColor: topics.find((t) => t.name === subj)?.color || 'var(--accent-color)' }}></span>
-                      <span className="topic-name">{subj}</span>
-                      <span className="topic-time">{formatSmartDuration(displayData[subj], t2, i18n)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          ) : (
-            <p className="stats-no-sessions-message">{t('dashboard.noSessionsRecorded')}</p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ============================================================================  
    Timer Component  
@@ -885,64 +623,24 @@ function Timer(props) {
                 {topics.map(topic => {
                   const isActive = subject === topic.name;
                   return (
-                    <div
+                    <TopicTag
                       key={topic.name}
-                      className={`topic-tag ${isActive ? 'active' : ''}`}
-                      style={{
-                        borderColor: topic.color,
-                        backgroundColor: isActive ? topic.color : 'transparent',
-                        color: isActive ? '#fff' : topic.color, // Use topic color for text if not active
-                        fontWeight: 600,
-                        letterSpacing: '0.01em',
+                      topic={topic}
+                      isActive={isActive}
+                      onSelect={() => handleSelectTopic(topic.name)}
+                      onColorChange={updateTopicColor}
+                      onRemove={() => {
+                        if (timerRunning) {
+                          setErrorMessage(t('dashboard.cantDeleteTopicsWhileTimerRunning'));
+                          setTimeout(() => setErrorMessage(""), 3000);
+                          return;
+                        }
+                        removeTopic(topic.name);
                       }}
-                      onClick={() => handleSelectTopic(topic.name)}
-                    >
-                      {topic.name}
-                      <input
-                        type="color"
-                        value={topic.color}
-                        onClick={e => e.stopPropagation()}
-                        onChange={e => updateTopicColor(topic.name, e.target.value)}
-                        className="tag-color-picker"
-                        title={t('dashboard.changeColor')}
-                        disabled={timerRunning}
-                      />
-                      <span
-                        className="tag-remove"
-                        title={t('dashboard.removeTopic')}
-                        onClick={e => {
-                          e.stopPropagation();
-                          if (timerRunning) {
-                            setErrorMessage(t('dashboard.cantDeleteTopicsWhileTimerRunning'));
-                            setTimeout(() => setErrorMessage(""), 3000);
-                            return;
-                          }
-                          removeTopic(topic.name);
-                        }}
-                        style={{
-                          cursor: timerRunning ? 'not-allowed' : 'pointer',
-                          color: '#ba2f3d',
-                          marginLeft: 8,
-                          opacity: timerRunning ? 0.5 : 1,
-                          fontWeight: 'bold',
-                          fontSize: '1.2em',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: 22,
-                          height: 22,
-                          borderRadius: '50%',
-                          background: timerRunning ? '#eee' : 'transparent',
-                          transition: 'background 0.2s',
-                          border: '1.5px solid #ba2f3d',
-                        }}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 12 12" style={{ display: 'block' }}>
-                          <line x1="2" y1="2" x2="10" y2="10" stroke="#ba2f3d" strokeWidth="2" strokeLinecap="round" />
-                          <line x1="10" y1="2" x2="2" y2="10" stroke="#ba2f3d" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                      </span>
-                    </div>
+                      timerRunning={timerRunning}
+                      t={t}
+                      subject={subject}
+                    />
                   );
                 })}
               </div>
@@ -996,19 +694,7 @@ function Timer(props) {
           </div>
 
           {showResetConfirm && (
-            <div className="modal-overlay">
-              <div className="modal" style={{ padding: '20px' }}>
-                <p>{t('dashboard.confirmResetStats')}</p>
-                <div className="modal-buttons">
-                  <button onClick={handleResetConfirmed} className="confirm button-pop button-ripple">
-                    {t('dashboard.yesResetStats')}
-                  </button>
-                  <button onClick={handleResetCancelled} className="cancel-btn button-pop button-ripple" style={{  background: "var(--card-bg)", color: "var(--accent-color)", minWidth: 20, height: 40, fontSize: 16, padding: "0 18px", borderRadius: 8, boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center", marginLeft: -5, border: "1.5px solid var(--accent-color)" }}>
-                    {t('dashboard.cancel')}
-                  </button>
-                </div>
-              </div>
-            </div>
+            <ResetModal open={showResetConfirm} onConfirm={handleResetConfirmed} onCancel={handleResetCancelled} t={t} />
           )}
         </div>
       </div>

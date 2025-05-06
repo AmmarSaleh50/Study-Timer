@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
-import PageLoader from './PageLoader';
-import '../styles/RoutineChatPage.css';
-import '../styles/animations.css';
+import useUserProfile from '../../hooks/useUserProfile';
+import PageLoader from '../../components/PageLoader';
+import '../../styles/RoutineChatPage.css';
+import '../../styles/animations.css';
 
 const AI_AVATAR = <span className="routinechat-avatar" title="AI">🤖</span>;
 const USER_AVATAR = <span className="routinechat-avatar" title="You">🧑</span>;

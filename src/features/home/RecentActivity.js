@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
+import useUserProfile from '../../hooks/useUserProfile';
 
 export default function RecentActivity({ onLoaded }) {
   const { user } = useUserProfile();

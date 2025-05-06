@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
+import useUserProfile from '../../hooks/useUserProfile';
 
 const BG_PRESETS = [
   { value: 'none', label: 'None' },
@@ -24,15 +24,6 @@ export default function ProfileCustomization() {
       i18n.changeLanguage(language);
     }
   }, [language, i18n]);
-
-  React.useEffect(() => {
-    document.body.classList.remove('golden-theme', 'light-theme');
-    if (theme === 'golden') {
-      document.body.classList.add('golden-theme');
-    } else if (theme === 'light') {
-      document.body.classList.add('light-theme');
-    }
-  }, [theme]);
 
   // Handler for theme change
   const handleThemeChange = (e) => {
@@ -73,7 +64,7 @@ export default function ProfileCustomization() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
         <span style={{ color: 'var(--muted-text)', fontSize: 15 }}>{t('profile.theme.label')}</span>
         <select value={theme} onChange={handleThemeChange} style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'var(--drawer-bg)', color: 'var(--button-text)', fontSize: 15 }}>
-          <option value="default">{t('profile.theme.default') || 'Light'}</option>
+          <option value="default">{t('profile.theme.default') || 'Classic Purple'}</option>
           <option value="light">Light Mode</option>
           <option value="golden">{t('profile.theme.golden') || 'Golden'}</option>
         </select>

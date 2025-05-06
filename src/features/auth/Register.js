@@ -1,11 +1,11 @@
 // Register.js
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../firebase";
+import { auth, googleProvider } from "../../firebase";
 import { useNavigate, Link } from "react-router-dom";
-import FloatingLabelInput from './FloatingLabelInput';
+import FloatingLabelInput from '../../components/FloatingLabelInput';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
+import useUserProfile from '../../hooks/useUserProfile';
 
 export default function Register() {
   // ---------- State Variables ----------

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
-import '../styles/RoutinesPage.css';
-import FloatingLabelInput from './FloatingLabelInput';
+import '../../styles/RoutinesPage.css';
+import FloatingLabelInput from '../../components/FloatingLabelInput';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { generateTaskId } from '../utils';
+import { generateTaskId } from '../../utils';
 import { useTranslation } from 'react-i18next';
-import useUserProfile from '../hooks/useUserProfile';
-import PageLoader from './PageLoader';
+import useUserProfile from '../../hooks/useUserProfile';
+import PageLoader from '../../components/PageLoader';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -266,7 +266,7 @@ const RoutinesPage = () => {
     } else {
       setTaskOverlapWarning(null);
     }
-  }, [editTasks, editing]);
+  }, [editTasks, editing, findTaskOverlaps]);
 
   const handleDragEnd = result => {
     if (!result.destination) return;
@@ -310,26 +310,10 @@ const RoutinesPage = () => {
     setEditTasks(adjusted);
   };
 
-  useEffect(() => {
-    findTaskOverlaps();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const lateBtnRef = React.useRef(null);
   const earlyBtnRef = React.useRef(null);
 
-  const handleLateBtnClick = () => {
-    if (!showLateBtns && lateBtnRef.current) {
-      setShowLateBtns(s => !s);
-      if (!showLateBtns) setShowEarlyBtns(false);
-    }
-  };
-  const handleEarlyBtnClick = () => {
-    if (!showEarlyBtns && earlyBtnRef.current) {
-      setShowEarlyBtns(s => !s);
-      if (!showEarlyBtns) setShowLateBtns(false);
-    }
-  };
 
   // --- Save Template Functionality ---
   const saveTemplate = async () => {

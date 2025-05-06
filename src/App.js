@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import Timer from "./components/Timer";
-import RoutinesPage from "./components/RoutinesPage";
-import ForgotPassword from "./components/ForgotPassword";
-import HomePage from "./components/HomePage";
-import RoutineChatPage from "./components/RoutineChatPage";
-import ProfilePage from "./components/ProfilePage";
+import Login from "./features/auth/Login";
+import Register from "./features/auth/Register";
+import Timer from "./features/timer/Timer";
+import RoutinesPage from "./features/routines/RoutinesPage";
+import ForgotPassword from "./features/auth/ForgotPassword";
+import HomePage from "./features/home/HomePage";
+import RoutineChatPage from "./features/chat/RoutineChatPage";
+import ProfilePage from "./features/profile/ProfilePage";
 import './styles/animations.css';
 import './styles/App.css';
 import './styles/HomePage.css';
@@ -19,12 +19,13 @@ import './styles/RoutineRunner.css';
 import './styles/Onboarding.css';
 import './styles/ProfilePage.css';
 import { db } from "./firebase";
-import { setDoc, doc } from "firebase/firestore";
+import { setDoc, doc, getDoc} from "firebase/firestore";
 import BottomNavBar from './components/BottomNavBar';
 import Onboarding from './components/Onboarding';
 import { useTranslation } from 'react-i18next';
 import { UserProfileProvider } from './context/UserProfileContext';
 import InteractiveDotBackground from './components/InteractiveDotBackground';
+import { ThemeProvider } from './context/ThemeProvider';
 
 function AppInner() {
   const { t, i18n } = useTranslation();
@@ -238,7 +239,9 @@ export default function App() {
   return (
     <Router>
       <UserProfileProvider>
-        <AppInner />
+        <ThemeProvider>
+          <AppInner />
+        </ThemeProvider>
       </UserProfileProvider>
     </Router>
   );
