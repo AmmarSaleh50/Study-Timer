@@ -124,6 +124,7 @@
     "sunday": "Sonntag"
   },
   "routines": {
+    "importRoutine": "Routinen importieren",
     "title": "Routinen",
     "routineFor": "Routine für {{day}}",
     "noRoutine": "Keine Routine für diesen Tag.",

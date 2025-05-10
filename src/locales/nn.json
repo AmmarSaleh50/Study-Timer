@@ -129,6 +129,7 @@
     "sunday": "Sundag"
   },
   "routines": {
+    "importRoutine": "Importer rutiner",
     "title": "Rutinar",
     "routineFor": "Rutine for {{day}}",
     "noRoutine": "Ingen rutine sett for denne dagen.",

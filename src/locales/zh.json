@@ -162,6 +162,7 @@
     "sunday": "星期日"
   },
   "routines": {
+    "importRoutine": "导入日常",
     "title": "例程",
     "routineFor": "{{day}}的例程",
     "noRoutine": "这一天没有设置例程。",

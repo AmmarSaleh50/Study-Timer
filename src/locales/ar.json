@@ -159,6 +159,7 @@
     "sunday": "الأحد"
   },
   "routines": {
+    "importRoutine": "استيراد الجداول",
     "title": "الروتينات",
     "routineFor": "روتين يوم {{day}}",
     "noRoutine": "لا يوجد روتين لهذا اليوم.",

@@ -40,6 +40,41 @@ function getDefaultTask(existingTasks = []) {
 }
 
 const RoutinesPage = () => {
+  // ...existing state and hooks
+  // Import JSON handler
+  const handleImportJSON = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      // Expected format: { Monday: [task, ...], ... }
+      if (typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid JSON structure');
+      let updates = {};
+      for (const day of DAYS) {
+        if (data[day] && Array.isArray(data[day])) {
+          // Ensure each task has an id
+          updates[day] = data[day].map(task => ({ ...task, id: task.id || generateTaskId() }));
+        }
+      }
+      if (!userId) throw new Error('User not loaded');
+      // Save each day's routine to Firebase
+      await Promise.all(
+        Object.entries(updates).map(([day, tasks]) => {
+          const routinesRef = doc(db, 'users', userId, 'routines', day);
+          return setDoc(routinesRef, { tasks });
+        })
+      );
+      // Update local state
+      setRoutines(r => ({ ...r, ...updates }));
+      alert('Routines imported successfully!');
+    } catch (err) {
+      alert('Failed to import routines: ' + err.message);
+    }
+    // Reset input value so same file can be re-imported if needed
+    e.target.value = '';
+  };
+
   const { user } = useUserProfile();
   const { t } = useTranslation();
   const [userId, setUserId] = useState(null);
@@ -347,7 +382,7 @@ const RoutinesPage = () => {
       <div id="dnd-portal-root"></div>
       <div className="routines-main-bg">
         <div className="routines-container">
-          <h1 className="routines-title">{t('routines.title')}</h1>
+        <h1 className="routines-title">{t('routines.title')}</h1>
           <div className="routine-day-selector">
             {DAYS.map(day => (
               <button
@@ -443,6 +478,26 @@ const RoutinesPage = () => {
                   </button>
                   <button className="save-btn button-pop button-ripple" onClick={() => setShowEditTemplates(true)}>
                     {t('routines.editTemplates')}
+                  </button>
+                  <div style={{ width: '1px', height: '30px', margin: '0 12px', background: 'var(--separator-color, rgba(255, 215, 0, 0.3))' }}></div>
+                  <input
+                    id="import-json"
+                    type="file"
+                    accept="application/json"
+                    style={{ display: 'none' }}
+                    onChange={handleImportJSON}
+                  />
+                  <button
+                    className="save-btn button-pop button-ripple"
+                    onClick={() => document.getElementById('import-json').click()}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 4 }}>
+                        <path d="M10 2v12m0 0l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <rect x="3" y="16" width="14" height="2" rx="1" fill="currentColor"/>
+                      </svg>
+                      {t('routines.importRoutine') || 'Import Routine'}
+                    </span>
                   </button>
                 </div>
                 <DragDropContext

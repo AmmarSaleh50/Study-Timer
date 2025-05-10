@@ -160,6 +160,7 @@
     "sunday": "Domenica"
   },
   "routines": {
+    "importRoutine": "Importa routine",
     "title": "Routine",
     "routineFor": "Routine per {{day}}",
     "noRoutine": "Nessuna routine impostata per questo giorno.",

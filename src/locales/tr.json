@@ -159,6 +159,7 @@
     "sunday": "Pazar"
   },
   "routines": {
+    "importRoutine": "Rutinleri içe aktar",
     "title": "Rutinler",
     "routineFor": "{{day}} için rutin",
     "noRoutine": "Bu gün için rutin ayarlanmadı.",

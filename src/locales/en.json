@@ -131,6 +131,7 @@
     "sunday": "Sunday"
   },
   "routines": {
+    "importRoutine": "Import routines",
     "title": "Routines",
     "routineFor": "Routine for {{day}}",
     "noRoutine": "No routine set for this day.",

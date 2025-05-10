@@ -161,6 +161,7 @@
     "sunday": "Воскресенье"
   },
   "routines": {
+    "importRoutine": "Импортировать рутины",
     "title": "Рутины",
     "routineFor": "Рутина для {{day}}",
     "noRoutine": "Нет рутины для этого дня.",

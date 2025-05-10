@@ -129,6 +129,7 @@
     "sunday": "Zondag"
   },
   "routines": {
+    "importRoutine": "Routines importeren",
     "title": "Routines",
     "routineFor": "Routine voor {{day}}",
     "noRoutine": "Geen routine ingesteld voor deze dag.",
