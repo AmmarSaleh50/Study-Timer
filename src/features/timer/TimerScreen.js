@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next';
 
 const SPOTIFY_EMBED_URL = "https://open.spotify.com/embed/playlist/37i9dQZF1DXc8kgYqQLMfH"; // Chill Lofi Study Beats
 
-function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume, t, i18n }) {
+function TimerScreen({ subject, elapsedSeconds, formatTime, stopTimer, isPaused, onPause, onResume, timerMode, pomodoroDuration, t, i18n }) {
   const [showSpotify] = useState(false);
   return (
     <div className="timer-screen">
       <h2>{t('dashboard.currentlyStudying')} {subject}</h2>
-      <div className="big-timer">{formatTime(elapsedSeconds, t, i18n)}</div>
+      <div className="big-timer">{formatTime(timerMode === 'pomodoro' ? Math.max(pomodoroDuration - elapsedSeconds, 0) : elapsedSeconds, t, i18n)}</div>
       <div className="timer-controls">
         <button 
           className={`control-button ${isPaused ? 'resume' : 'pause'} button-pop button-ripple`}
