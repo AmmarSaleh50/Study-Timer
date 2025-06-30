@@ -35,6 +35,8 @@ import WeeklyStatsCard from './WeeklyStatsCard';
 import TopicTag from './TopicTag';
 import ResetModal from './ResetModal';
 
+const POMODORO_DURATION = 25 * 60; // 25 minutes
+
 /* ============================================================================  
    Helper Functions  
 ============================================================================ */
@@ -55,6 +57,7 @@ function Timer(props) {
   const [subject, setSubject] = useState('');
   const [timerRunning, setTimerRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [timerMode, setTimerMode] = useState('normal');
   // Remove intervalId from state and use ref instead.
   const intervalRef = useRef(null);
   const [sessions, setSessions] = useState([]);
@@ -129,6 +132,7 @@ function Timer(props) {
         setTotalPausedDuration(timerData.totalPausedDuration || 0);
         setIsPaused(timerData.isPaused || false);
         setLastPausedAt(timerData.lastPausedAt ? new Date(timerData.lastPausedAt) : null);
+        setTimerMode(timerData.mode || 'normal');
         
         // Calculate elapsed time
         let elapsed;
@@ -224,6 +228,7 @@ function Timer(props) {
           setTotalPausedDuration(timerData.totalPausedDuration || 0);
           setIsPaused(timerData.isPaused || false);
           setLastPausedAt(timerData.lastPausedAt ? new Date(timerData.lastPausedAt) : null);
+          setTimerMode(timerData.mode || 'normal');
           // Calculate elapsed seconds
           let elapsed;
           if (timerData.isPaused) {
@@ -320,7 +325,8 @@ function Timer(props) {
           startTime: new Date().toISOString(),
           totalPausedDuration: 0,
           isPaused: false,
-          lastPausedAt: null
+          lastPausedAt: null,
+          mode: timerMode
         }
       },
       { merge: true }
@@ -499,6 +505,18 @@ function Timer(props) {
 
   const handleResetCancelled = () => setShowResetConfirm(false);
 
+  // Automatically stop pomodoro when duration reached
+  useEffect(() => {
+    if (
+      timerRunning &&
+      timerMode === 'pomodoro' &&
+      !isPaused &&
+      elapsedSeconds >= POMODORO_DURATION
+    ) {
+      stopTimer();
+    }
+  }, [elapsedSeconds, timerRunning, timerMode, isPaused]);
+
   // Format seconds to HH:MM:SS
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -562,6 +580,8 @@ function Timer(props) {
               isPaused={isPaused}
               onPause={handlePause}
               onResume={handleResume}
+              timerMode={timerMode}
+              pomodoroDuration={POMODORO_DURATION}
               t={t}
               i18n={i18n}
             />
@@ -652,6 +672,30 @@ function Timer(props) {
               {errorMessage}
             </div>
           )}
+
+          {/* Mode Selection */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ marginRight: 10 }}>
+              <input
+                type="radio"
+                name="timerMode"
+                value="normal"
+                checked={timerMode === 'normal'}
+                onChange={() => setTimerMode('normal')}
+              />{' '}
+              Normal
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="timerMode"
+                value="pomodoro"
+                checked={timerMode === 'pomodoro'}
+                onChange={() => setTimerMode('pomodoro')}
+              />{' '}
+              Pomodoro
+            </label>
+          </div>
 
           {/* Timer Control */}
           {timerRunning && !showTimerScreen && (
