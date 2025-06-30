@@ -264,20 +264,6 @@ const [statsLoaded, setStatsLoaded] = useState(false);
     }
   }, [language, i18n]);
 
-  // Add effect to update body class on theme change
-  useEffect(() => {
-    if (theme === 'golden') {
-      document.body.classList.add('golden-theme');
-      document.body.classList.remove('purple-theme');
-    } else if (theme === 'purple') {
-      document.body.classList.add('purple-theme');
-      document.body.classList.remove('golden-theme');
-    } else {
-      document.body.classList.remove('golden-theme');
-      document.body.classList.remove('purple-theme');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
 
   return (
     <PageLoader loading={loading}>

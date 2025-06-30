@@ -7,16 +7,22 @@ export function ThemeProvider({ children }) {
   const { theme } = useUserProfile();
 
   useEffect(() => {
-    document.body.classList.remove('golden-theme', 'light-theme', 'purple-theme', 'default-theme');
-    if (theme === 'golden') {
-      document.body.classList.add('golden-theme');
-    } else if (theme === 'light') {
-      document.body.classList.add('light-theme');
-    } else if (theme === 'purple') {
-      document.body.classList.add('purple-theme');
-    } else {
-      document.body.classList.add('default-theme');
-    }
+    const htmlEl = document.documentElement;
+    const rootEl = document.getElementById('root');
+    const themeClasses = ['golden-theme', 'light-theme', 'purple-theme', 'default-theme'];
+
+    [document.body, htmlEl, rootEl].forEach(el => el?.classList.remove(...themeClasses));
+
+    const selectedClass =
+      theme === 'golden'
+        ? 'golden-theme'
+        : theme === 'light'
+        ? 'light-theme'
+        : theme === 'purple'
+        ? 'purple-theme'
+        : 'default-theme';
+
+    [document.body, htmlEl, rootEl].forEach(el => el?.classList.add(selectedClass));
   }, [theme]);
 
   return (

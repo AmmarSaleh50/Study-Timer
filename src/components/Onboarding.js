@@ -180,19 +180,7 @@ export default function Onboarding({ onFinish }) {
             <div className="onboarding-custom-form">
               <select
                 value={theme}
-                onChange={e => {
-                  setTheme(e.target.value);
-                  if (e.target.value === 'golden') {
-                    document.body.classList.add('golden-theme');
-                    document.body.classList.remove('purple-theme');
-                  } else if (e.target.value === 'purple') {
-                    document.body.classList.add('purple-theme');
-                    document.body.classList.remove('golden-theme');
-                  } else {
-                    document.body.classList.remove('golden-theme');
-                    document.body.classList.remove('purple-theme');
-                  }
-                }}
+                onChange={e => setTheme(e.target.value)}
                 className="onboarding-input"
                 style={{ marginBottom: 8 }}
               >

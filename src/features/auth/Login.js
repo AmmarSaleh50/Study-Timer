@@ -48,19 +48,6 @@ export default function Login() {
       if (profile.language && i18n.language !== profile.language) {
         i18n.changeLanguage(profile.language);
       }
-      // --- Apply theme immediately ---
-      if (profile.theme && typeof document !== 'undefined') {
-        if (profile.theme === 'golden') {
-          document.body.classList.add('golden-theme');
-          document.body.classList.remove('purple-theme');
-        } else if (profile.theme === 'purple') {
-          document.body.classList.add('purple-theme');
-          document.body.classList.remove('golden-theme');
-        } else {
-          document.body.classList.remove('golden-theme');
-          document.body.classList.remove('purple-theme');
-        }
-      }
       navigate("/");
     } catch (err) {
       console.error('Login error:', err);
@@ -89,19 +76,6 @@ export default function Login() {
       // --- Apply language immediately ---
       if (profile.language && i18n.language !== profile.language) {
         i18n.changeLanguage(profile.language);
-      }
-      // --- Apply theme immediately ---
-      if (profile.theme && typeof document !== 'undefined') {
-        if (profile.theme === 'golden') {
-          document.body.classList.add('golden-theme');
-          document.body.classList.remove('purple-theme');
-        } else if (profile.theme === 'purple') {
-          document.body.classList.add('purple-theme');
-          document.body.classList.remove('golden-theme');
-        } else {
-          document.body.classList.remove('golden-theme');
-          document.body.classList.remove('purple-theme');
-        }
       }
       navigate("/");
     } catch (err) {

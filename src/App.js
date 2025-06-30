@@ -138,21 +138,6 @@ function AppInner() {
     console.log(`${t('common.routineImportComplete')}:`, newRoutines);
   };
 
-  // Theme toggle logic
-  const [theme] = useState(() => {
-    return localStorage.getItem('theme') || 'default';
-  });
-
-  useEffect(() => {
-    if (theme === 'golden') {
-      document.body.classList.add('golden-theme');
-      localStorage.setItem('theme', 'golden');
-    } else {
-      document.body.classList.remove('golden-theme');
-      localStorage.setItem('theme', 'default');
-    }
-  }, [theme]);
-
 
   // Background preset
   const [bgPreset, setBgPreset] = React.useState(() => localStorage.getItem('bg-preset') || 'dots');
